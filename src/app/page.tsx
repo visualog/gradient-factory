@@ -45,6 +45,28 @@ const DOCK_MAX_SIZE = 112
 const DOCK_INFLUENCE = 220
 const DOCK_GAP = 24
 const DOCK_PADDING_X = 4
+const WARP_PREVIEW_HIDE_DELAY = 900
+const CANVAS_MIN_WIDTH = 640
+const CANVAS_MIN_HEIGHT = 320
+const CANVAS_MAX_SIZE = 2048
+const CANVAS_PREVIEW_MAX_WIDTH = 900
+const CANVAS_CORNER_RADIUS = 24
+const NOISE_MAX = 0.15
+const CONTROL_RAIL_GAP = 12
+const CONTROL_ITEM_GAP = 8
+const CONTROL_HEIGHT = 36
+const RESIZE_HANDLE_EDGE_OFFSET = 18
+const RESIZE_HANDLE_CORNER_GAP = 12
+const RESIZE_HANDLE_CORNER_VIEWBOX = 48
+const RESIZE_HANDLE_CORNER_PATH_PADDING = 3
+const RESIZE_HANDLE_CORNER_STROKE_WIDTH = 6
+const RESIZE_HANDLE_CORNER_STROKE_HALF = RESIZE_HANDLE_CORNER_STROKE_WIDTH / 2
+const RESIZE_HANDLE_CORNER_FAR_EDGE = RESIZE_HANDLE_CORNER_VIEWBOX - RESIZE_HANDLE_CORNER_PATH_PADDING
+const RESIZE_HANDLE_CORNER_VISUAL_ALIGNMENT =
+  RESIZE_HANDLE_CORNER_FAR_EDGE - RESIZE_HANDLE_CORNER_VIEWBOX / 2 - RESIZE_HANDLE_CORNER_STROKE_HALF
+const RESIZE_HANDLE_CORNER_OFFSET = RESIZE_HANDLE_CORNER_GAP - RESIZE_HANDLE_CORNER_VISUAL_ALIGNMENT
+const RESIZE_HANDLE_CORNER_ARC_RADIUS =
+  CANVAS_CORNER_RADIUS + RESIZE_HANDLE_CORNER_GAP + RESIZE_HANDLE_CORNER_STROKE_HALF
 const DEFAULT_POINT_POSITIONS: PointPosition[] = [
   { x: 0.18, y: 0.18 },
   { x: 0.82, y: 0.14 },
@@ -53,6 +75,142 @@ const DEFAULT_POINT_POSITIONS: PointPosition[] = [
   { x: 0.50, y: 0.32 },
   { x: 0.50, y: 0.66 },
 ]
+const RESIZE_HANDLES = [
+  { id: 'nw', x: 0, y: 0, offsetX: -RESIZE_HANDLE_CORNER_OFFSET, offsetY: -RESIZE_HANDLE_CORNER_OFFSET, xAxis: -1, yAxis: -1, cursor: 'nwse-resize', label: 'Resize canvas from top left', shape: 'corner' },
+  { id: 'n', x: 50, y: 0, offsetX: 0, offsetY: -RESIZE_HANDLE_EDGE_OFFSET, xAxis: 0, yAxis: -1, cursor: 'ns-resize', label: 'Resize canvas height from top', shape: 'horizontal' },
+  { id: 'ne', x: 100, y: 0, offsetX: RESIZE_HANDLE_CORNER_OFFSET, offsetY: -RESIZE_HANDLE_CORNER_OFFSET, xAxis: 1, yAxis: -1, cursor: 'nesw-resize', label: 'Resize canvas from top right', shape: 'corner' },
+  { id: 'e', x: 100, y: 50, offsetX: RESIZE_HANDLE_EDGE_OFFSET, offsetY: 0, xAxis: 1, yAxis: 0, cursor: 'ew-resize', label: 'Resize canvas width from right', shape: 'vertical' },
+  { id: 'se', x: 100, y: 100, offsetX: RESIZE_HANDLE_CORNER_OFFSET, offsetY: RESIZE_HANDLE_CORNER_OFFSET, xAxis: 1, yAxis: 1, cursor: 'nwse-resize', label: 'Resize canvas from bottom right', shape: 'corner' },
+  { id: 's', x: 50, y: 100, offsetX: 0, offsetY: RESIZE_HANDLE_EDGE_OFFSET, xAxis: 0, yAxis: 1, cursor: 'ns-resize', label: 'Resize canvas height from bottom', shape: 'horizontal' },
+  { id: 'sw', x: 0, y: 100, offsetX: -RESIZE_HANDLE_CORNER_OFFSET, offsetY: RESIZE_HANDLE_CORNER_OFFSET, xAxis: -1, yAxis: 1, cursor: 'nesw-resize', label: 'Resize canvas from bottom left', shape: 'corner' },
+  { id: 'w', x: 0, y: 50, offsetX: -RESIZE_HANDLE_EDGE_OFFSET, offsetY: 0, xAxis: -1, yAxis: 0, cursor: 'ew-resize', label: 'Resize canvas width from left', shape: 'vertical' },
+] as const
+
+const PERIMETER_CONTROLS = [
+  { id: 'style', width: 136 },
+  { id: 'warpShape', width: 112 },
+  { id: 'warp', width: 224 },
+  { id: 'warpSize', width: 248 },
+  { id: 'noise', width: 224 },
+] as const
+
+type PerimeterControlId = (typeof PERIMETER_CONTROLS)[number]['id']
+
+type ResizeHandle = (typeof RESIZE_HANDLES)[number]
+
+type CanvasResizeState = {
+  pointerId: number
+  startX: number
+  startY: number
+  startWidth: number
+  startHeight: number
+  scaleX: number
+  scaleY: number
+  xAxis: ResizeHandle['xAxis']
+  yAxis: ResizeHandle['yAxis']
+}
+
+function resizeHandleButtonClass(handle: ResizeHandle, activeResizeHandle: string | null) {
+  const stateClass = activeResizeHandle
+    ? activeResizeHandle === handle.id
+      ? 'opacity-100'
+      : 'opacity-40'
+    : 'opacity-0 group-hover:opacity-100'
+
+  const sizeClass =
+    handle.shape === 'horizontal' ? 'h-8 w-16' : handle.shape === 'vertical' ? 'h-16 w-8' : 'h-12 w-12'
+
+  return `absolute z-30 flex touch-none items-center justify-center ${sizeClass} outline-none transition-opacity duration-150 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white/80 ${stateClass}`
+}
+
+function resizeHandleBarClass(handle: ResizeHandle, activeResizeHandle: string | null) {
+  const toneClass = activeResizeHandle === handle.id ? 'bg-white/85 border-white/40' : 'bg-white/50 border-white/20'
+  const axisClass = handle.shape === 'horizontal' ? 'h-1.5 w-11' : 'h-11 w-1.5'
+
+  return `block rounded-full border shadow-[0_3px_12px_rgba(0,0,0,0.45)] backdrop-blur transition-[background-color,border-color,transform] duration-150 group-hover/resize:scale-110 group-hover/resize:bg-white/75 ${axisClass} ${toneClass}`
+}
+
+function resizeHandleCornerClass(handleId: ResizeHandle['id'], activeResizeHandle: string | null) {
+  const toneClass = activeResizeHandle === handleId ? 'text-white/85' : 'text-white/55 group-hover/resize:text-white/75'
+  const shadowClass = 'drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]'
+
+  return `absolute inset-1 transition-[color,filter,transform] duration-150 group-hover/resize:scale-105 ${toneClass} ${shadowClass}`
+}
+
+function resizeHandleCornerPath(handleId: ResizeHandle['id']) {
+  const radius = RESIZE_HANDLE_CORNER_ARC_RADIUS
+  const padding = RESIZE_HANDLE_CORNER_PATH_PADDING
+  const farEdge = RESIZE_HANDLE_CORNER_FAR_EDGE
+  const arcStart = padding + radius
+  const oppositeArcStart = farEdge - radius
+  const control = radius * 0.5522847498
+
+  return (
+    handleId === 'nw'
+      ? `M ${farEdge} ${padding} H ${arcStart} C ${arcStart - control} ${padding} ${padding} ${arcStart - control} ${padding} ${arcStart} V ${farEdge}`
+      : handleId === 'ne'
+        ? `M ${padding} ${padding} H ${oppositeArcStart} C ${oppositeArcStart + control} ${padding} ${farEdge} ${arcStart - control} ${farEdge} ${arcStart} V ${farEdge}`
+        : handleId === 'se'
+          ? `M ${padding} ${farEdge} H ${oppositeArcStart} C ${oppositeArcStart + control} ${farEdge} ${farEdge} ${oppositeArcStart + control} ${farEdge} ${oppositeArcStart} V ${padding}`
+          : `M ${farEdge} ${farEdge} H ${arcStart} C ${arcStart - control} ${farEdge} ${padding} ${oppositeArcStart + control} ${padding} ${oppositeArcStart} V ${padding}`
+  )
+}
+
+function perimeterControlDistance(controlId: PerimeterControlId) {
+  let distance = 0
+
+  for (const control of PERIMETER_CONTROLS) {
+    if (control.id === controlId) return distance + control.width / 2
+    distance += control.width + CONTROL_ITEM_GAP
+  }
+
+  return distance
+}
+
+function perimeterControlWidth(controlId: PerimeterControlId) {
+  return PERIMETER_CONTROLS.find((control) => control.id === controlId)?.width ?? 160
+}
+
+function perimeterControlStyle(
+  controlId: PerimeterControlId,
+  previewWidth: number
+): CSSProperties {
+  const width = perimeterControlWidth(controlId)
+  const distance = perimeterControlDistance(controlId)
+  const pathRadius = CANVAS_CORNER_RADIUS + CONTROL_RAIL_GAP + CONTROL_HEIGHT / 2
+  const topStraightLength = Math.max(0, previewWidth - CANVAS_CORNER_RADIUS)
+  const cornerCenterX = previewWidth - CANVAS_CORNER_RADIUS
+  const cornerCenterY = CANVAS_CORNER_RADIUS
+  const arcLength = (Math.PI * pathRadius) / 2
+  let x = distance
+  let y = -(CONTROL_RAIL_GAP + CONTROL_HEIGHT / 2)
+  let angle = 0
+
+  if (distance > topStraightLength) {
+    const cornerDistance = distance - topStraightLength
+
+    if (cornerDistance <= arcLength) {
+      const progress = cornerDistance / arcLength
+      const theta = -Math.PI / 2 + progress * (Math.PI / 2)
+      x = cornerCenterX + pathRadius * Math.cos(theta)
+      y = cornerCenterY + pathRadius * Math.sin(theta)
+      angle = (theta * 180) / Math.PI + 90
+    } else {
+      x = previewWidth + CONTROL_RAIL_GAP + CONTROL_HEIGHT / 2
+      y = cornerCenterY + (cornerDistance - arcLength)
+      angle = 90
+    }
+  }
+
+  return {
+    height: CONTROL_HEIGHT,
+    left: x,
+    top: y,
+    transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+    transformOrigin: 'center',
+    width,
+  }
+}
 
 function dockSize(mouseX: number, index: number) {
   if (!Number.isFinite(mouseX)) return DOCK_BASE_SIZE
@@ -305,13 +463,24 @@ function renderGradient(
 }
 
 export default function Page() {
+  const canvasFrameRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const dockMouseX = useMotionValue(Number.POSITIVE_INFINITY)
   const activePointIndexRef = useRef<number | null>(null)
   const dragFrameRef = useRef<number | null>(null)
   const pendingPointRef = useRef<{ index: number; point: PointPosition } | null>(null)
+  const warpPreviewTimeoutRef = useRef<number | null>(null)
+  const didMountWarpPreviewRef = useRef(false)
+  const canvasResizeRef = useRef<CanvasResizeState | null>(null)
+  const renderFrameRef = useRef<number | null>(null)
+  const resizeFrameRef = useRef<number | null>(null)
+  const pendingCanvasSizeRef = useRef<{ width: number; height: number } | null>(null)
   const [activePointIndex, setActivePointIndex] = useState<number | null>(null)
+  const [showWarpPreview, setShowWarpPreview] = useState(false)
+  const [isCanvasHovering, setIsCanvasHovering] = useState(false)
+  const [previewWidth, setPreviewWidth] = useState(648)
   const [draggingColorIndex, setDraggingColorIndex] = useState<number | null>(null)
+  const [activeResizeHandle, setActiveResizeHandle] = useState<string | null>(null)
   const activePreset = DEFAULT_STYLE_PRESET
   const { classes, gradientDefaults } = activePreset
   const presetStyleVars = {
@@ -348,10 +517,31 @@ export default function Page() {
     }),
     [width, height, colors, pointPositions, style, warpShape, warp, warpSize, noise]
   )
+  const warpedPointPositions = useMemo(
+    () => buildPoints(colors, pointPositions, warpShape, warp, warpSize).map(({ x, y }) => ({ x, y })),
+    [colors, pointPositions, warpShape, warp, warpSize]
+  )
+  const showPointHandles = isCanvasHovering || activePointIndex !== null
 
   useEffect(() => {
     if (!canvasRef.current) return
-    renderGradient(canvasRef.current, state)
+
+    if (renderFrameRef.current !== null) {
+      cancelAnimationFrame(renderFrameRef.current)
+    }
+
+    renderFrameRef.current = requestAnimationFrame(() => {
+      renderFrameRef.current = null
+      if (!canvasRef.current) return
+      renderGradient(canvasRef.current, state)
+    })
+
+    return () => {
+      if (renderFrameRef.current !== null) {
+        cancelAnimationFrame(renderFrameRef.current)
+        renderFrameRef.current = null
+      }
+    }
   }, [state])
 
   useEffect(() => {
@@ -359,8 +549,49 @@ export default function Page() {
       if (dragFrameRef.current !== null) {
         cancelAnimationFrame(dragFrameRef.current)
       }
+      if (warpPreviewTimeoutRef.current !== null) {
+        window.clearTimeout(warpPreviewTimeoutRef.current)
+      }
+      if (resizeFrameRef.current !== null) {
+        cancelAnimationFrame(resizeFrameRef.current)
+      }
+      if (renderFrameRef.current !== null) {
+        cancelAnimationFrame(renderFrameRef.current)
+      }
     }
   }, [])
+
+  useEffect(() => {
+    const frame = canvasFrameRef.current
+    if (!frame) return
+
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return
+      setPreviewWidth(entry.contentRect.width)
+    })
+
+    observer.observe(frame)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!didMountWarpPreviewRef.current) {
+      didMountWarpPreviewRef.current = true
+      return
+    }
+
+    if (activePointIndexRef.current !== null) return
+
+    setShowWarpPreview(true)
+    if (warpPreviewTimeoutRef.current !== null) {
+      window.clearTimeout(warpPreviewTimeoutRef.current)
+    }
+
+    warpPreviewTimeoutRef.current = window.setTimeout(() => {
+      setShowWarpPreview(false)
+      warpPreviewTimeoutRef.current = null
+    }, WARP_PREVIEW_HIDE_DELAY)
+  }, [warpShape, warp, warpSize])
 
   useEffect(() => {
     let ignore = false
@@ -409,6 +640,7 @@ export default function Page() {
   const captureGradient = () => {
     const canvas = canvasRef.current
     if (!canvas) return null
+    renderGradient(canvas, state)
     return {
       id: Date.now(),
       preview: canvas.toDataURL('image/png'),
@@ -444,8 +676,8 @@ export default function Page() {
   }
 
   const loadSnapshot = (snapshot: GradientSnapshot) => {
-    setWidth(snapshot.width)
-    setHeight(snapshot.height)
+    setWidth(clamp(snapshot.width, CANVAS_MIN_WIDTH, CANVAS_MAX_SIZE))
+    setHeight(clamp(snapshot.height, CANVAS_MIN_HEIGHT, CANVAS_MAX_SIZE))
     setColors([...snapshot.colors])
     setPointPositions(
       snapshot.pointPositions && snapshot.pointPositions.length > 0
@@ -501,16 +733,87 @@ export default function Page() {
     setActivePointIndex(null)
   }
 
+  const updateCanvasHover = (event: PointerEvent<HTMLDivElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const isInside =
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom
+
+    setIsCanvasHovering(isInside)
+  }
+
+  const beginCanvasResize = (handle: ResizeHandle, event: PointerEvent<HTMLButtonElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
+
+    const rect = canvas.getBoundingClientRect()
+    canvasResizeRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startWidth: width,
+      startHeight: height,
+      scaleX: width / rect.width,
+      scaleY: height / rect.height,
+      xAxis: handle.xAxis,
+      yAxis: handle.yAxis,
+    }
+    setActiveResizeHandle(handle.id)
+  }
+
+  const resizeCanvas = (event: PointerEvent<HTMLButtonElement>) => {
+    const resizeState = canvasResizeRef.current
+    if (!resizeState || resizeState.pointerId !== event.pointerId) return
+
+    const deltaX = (event.clientX - resizeState.startX) * resizeState.scaleX
+    const deltaY = (event.clientY - resizeState.startY) * resizeState.scaleY
+    pendingCanvasSizeRef.current = {
+      width: Math.round(clamp(resizeState.startWidth + deltaX * resizeState.xAxis, CANVAS_MIN_WIDTH, CANVAS_MAX_SIZE)),
+      height: Math.round(clamp(resizeState.startHeight + deltaY * resizeState.yAxis, CANVAS_MIN_HEIGHT, CANVAS_MAX_SIZE)),
+    }
+
+    if (resizeFrameRef.current !== null) return
+    resizeFrameRef.current = requestAnimationFrame(() => {
+      const nextSize = pendingCanvasSizeRef.current
+      resizeFrameRef.current = null
+      pendingCanvasSizeRef.current = null
+      if (!nextSize) return
+
+      setWidth(nextSize.width)
+      setHeight(nextSize.height)
+    })
+  }
+
+  const endCanvasResize = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    canvasResizeRef.current = null
+    setActiveResizeHandle(null)
+  }
+
   return (
     <main
       className={`min-h-screen overflow-hidden px-4 py-5 sm:px-6 sm:py-6 ${classes.app}`}
       style={presetStyleVars}
     >
       <div className="grid min-h-[calc(100vh-2.5rem)] w-full grid-cols-1 grid-rows-[minmax(360px,1fr)_auto_auto] gap-6 lg:min-h-[calc(100vh-3rem)] lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-[minmax(0,1fr)_auto]">
-        <section className={`relative z-10 col-start-1 row-start-1 flex min-h-0 w-full items-center justify-center rounded-[28px] p-4 sm:p-6 lg:col-start-1 lg:row-start-1 ${classes.canvasArea}`}>
+        <section className={`relative z-10 col-start-1 row-start-1 flex min-h-0 w-full items-center justify-center rounded-[28px] lg:col-start-1 lg:row-start-1 ${classes.canvasArea}`}>
           <div
+            ref={canvasFrameRef}
             className={`group relative max-w-full ${activePointIndex !== null ? 'cursor-grabbing' : ''}`}
-            style={{ width: Math.min(width, 900), aspectRatio: `${width} / ${height}` }}
+            style={{ width: Math.min(width, CANVAS_PREVIEW_MAX_WIDTH), aspectRatio: `${width} / ${height}` }}
+            onPointerMove={updateCanvasHover}
+            onPointerLeave={() => setIsCanvasHovering(false)}
           >
             <canvas
               ref={canvasRef}
@@ -518,20 +821,111 @@ export default function Page() {
               style={{
                 width: '100%',
                 aspectRatio: `${width} / ${height}`,
-                borderRadius: 24,
+                borderRadius: CANVAS_CORNER_RADIUS,
                 boxShadow: '0 20px 80px rgba(0,0,0,0.45)',
               }}
             />
+            <div className="pointer-events-none absolute inset-0 z-40 overflow-visible text-[var(--pg-text)]">
+              <div
+                className="pointer-events-auto absolute"
+                style={perimeterControlStyle('style', previewWidth)}
+              >
+              <Select
+                value={style}
+                onValueChange={(value) => setStyle(value as GradientStyle)}
+              >
+                <SelectTrigger className="h-9 w-full rounded-[12px] bg-white/[0.10] px-3 text-xs shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-36">
+                  {GRADIENT_STYLES.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              </div>
+
+              <div
+                className="pointer-events-auto absolute"
+                style={perimeterControlStyle('warpShape', previewWidth)}
+              >
+              <Select
+                value={warpShape}
+                onValueChange={(value) => setWarpShape(value as WarpShape)}
+              >
+                <SelectTrigger className="h-9 w-full rounded-[12px] bg-white/[0.10] px-3 text-xs shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-36">
+                  {WARP_SHAPES.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              </div>
+
+              <div
+                className="pointer-events-auto absolute flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+                style={perimeterControlStyle('warp', previewWidth)}
+              >
+                <span className="w-8 whitespace-nowrap text-[11px] font-medium text-white/80">Warp</span>
+                <Slider
+                  aria-label="Warp"
+                  className="min-w-[160px]"
+                  min={0}
+                  max={1.5}
+                  step={0.01}
+                  value={[warp]}
+                  onValueChange={([value]) => setWarp(value)}
+                />
+              </div>
+
+              <div
+                className="pointer-events-auto absolute flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+                style={perimeterControlStyle('warpSize', previewWidth)}
+              >
+                <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-white/80">Warp Size</span>
+                <Slider
+                  aria-label="Warp Size"
+                  className="min-w-[160px]"
+                  min={0}
+                  max={3}
+                  step={0.01}
+                  value={[warpSize]}
+                  onValueChange={([value]) => setWarpSize(value)}
+                />
+              </div>
+
+              <div
+                className="pointer-events-auto absolute flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+                style={perimeterControlStyle('noise', previewWidth)}
+              >
+                <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-white/80">Noise</span>
+                <Slider
+                  aria-label="Noise"
+                  className="min-w-[160px]"
+                  min={0}
+                  max={NOISE_MAX}
+                  step={0.001}
+                  value={[noise]}
+                  onValueChange={([value]) => setNoise(value)}
+                />
+              </div>
+            </div>
             <div
               className={`absolute inset-0 rounded-[24px] transition-opacity ${
-                activePointIndex !== null ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                showPointHandles ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
               }`}
             >
               {pointPositions.map((point, index) => (
                 <button
                   key={index}
                   type="button"
-                  className="absolute h-6 w-6 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.45)] outline-none ring-1 ring-black/30 transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-white active:cursor-grabbing"
+                  className="absolute h-6 w-6 touch-none -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.45)] outline-none ring-1 ring-black/30 transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-white active:cursor-grabbing"
                   style={{
                     left: `${point.x * 100}%`,
                     top: `${point.y * 100}%`,
@@ -554,104 +948,87 @@ export default function Page() {
                 />
               ))}
             </div>
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute inset-0 rounded-[24px] transition-opacity duration-300 ${
+                showWarpPreview && activePointIndex === null ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              {warpedPointPositions.map((point, index) => (
+                <span
+                  key={index}
+                  className={`absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 shadow-[0_4px_16px_rgba(0,0,0,0.45)] ring-1 ring-black/30 transition-[left,top,transform] duration-300 ease-out ${
+                    showWarpPreview && activePointIndex === null ? 'scale-100' : 'scale-75'
+                  }`}
+                  style={{
+                    left: `${point.x * 100}%`,
+                    top: `${point.y * 100}%`,
+                    backgroundColor: colors[index],
+                  }}
+                />
+              ))}
+            </div>
+            {RESIZE_HANDLES.filter((handle) => handle.id === 'se').map((handle) => (
+              <button
+                key={handle.id}
+                type="button"
+                className={`group/resize ${resizeHandleButtonClass(handle, activeResizeHandle)}`}
+                style={{
+                  left: `${handle.x}%`,
+                  top: `${handle.y}%`,
+                  cursor: handle.cursor,
+                  transform: `translate(calc(-50% + ${handle.offsetX}px), calc(-50% + ${handle.offsetY}px))`,
+                }}
+                title={handle.label}
+                aria-label={handle.label}
+                onPointerDown={(event) => beginCanvasResize(handle, event)}
+                onPointerMove={resizeCanvas}
+                onPointerUp={endCanvasResize}
+                onPointerCancel={endCanvasResize}
+              >
+                {handle.shape === 'corner' ? (
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 48 48"
+                    fill="none"
+                    className={resizeHandleCornerClass(handle.id, activeResizeHandle)}
+                  >
+                    <path
+                      d={resizeHandleCornerPath(handle.id)}
+                      stroke="currentColor"
+                      strokeWidth={RESIZE_HANDLE_CORNER_STROKE_WIDTH}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <span aria-hidden className={resizeHandleBarClass(handle, activeResizeHandle)} />
+                )}
+              </button>
+            ))}
           </div>
         </section>
 
         <aside className={`z-30 col-start-1 row-start-2 max-h-[min(720px,calc(100vh-3rem))] w-full overflow-y-auto lg:col-start-2 lg:row-start-1 lg:self-center ${classes.panel}`}>
-          <div className="space-y-5 p-6">
-            <label className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3">
-              <span className="text-base font-semibold">Gradient</span>
-              <Select
-                value={style}
-                onValueChange={(value) => setStyle(value as GradientStyle)}
-              >
-                <SelectTrigger className="w-full min-w-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-36">
-                  {GRADIENT_STYLES.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </label>
-
-            <label className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3">
-              <span className="text-sm font-semibold">Warp Shape</span>
-              <Select
-                value={warpShape}
-                onValueChange={(value) => setWarpShape(value as WarpShape)}
-              >
-                <SelectTrigger className="w-full min-w-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-36">
-                  {WARP_SHAPES.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </label>
-
-            <div className="grid grid-cols-2 gap-8">
-              <label className="flex items-center gap-3">
-                <span className="text-sm font-semibold">W</span>
-                <Input
-                  type="number"
-                  min={1}
-                  value={width}
-                  onChange={(e) => setWidth(Number(e.target.value))}
-                  className="w-16"
-                />
-              </label>
-              <label className="flex items-center gap-3">
-                <span className="text-sm font-semibold">H</span>
-                <Input
-                  type="number"
-                  min={1}
-                  value={height}
-                  onChange={(e) => setHeight(Number(e.target.value))}
-                  className="w-16"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className={`space-y-5 border-t px-6 py-5 ${classes.panelDivider}`}>
-            <label className="grid grid-cols-[76px_1fr] items-center gap-3">
-              <span className="text-sm">Warp</span>
-              <Slider
-                min={0}
-                max={1.5}
-                step={0.01}
-                value={[warp]}
-                onValueChange={([value]) => setWarp(value)}
+          <div className="grid grid-cols-2 gap-8 p-6">
+            <label className="flex items-center gap-3">
+              <span className="text-sm font-semibold">W</span>
+              <Input
+                type="number"
+                min={CANVAS_MIN_WIDTH}
+                value={width}
+                onChange={(e) => setWidth(clamp(Number(e.target.value), CANVAS_MIN_WIDTH, CANVAS_MAX_SIZE))}
+                className="w-16"
               />
             </label>
-
-            <label className="grid grid-cols-[76px_1fr] items-center gap-3">
-              <span className="text-sm">Warp Size</span>
-              <Slider
-                min={0}
-                max={3}
-                step={0.01}
-                value={[warpSize]}
-                onValueChange={([value]) => setWarpSize(value)}
-              />
-            </label>
-
-            <label className="grid grid-cols-[76px_1fr] items-center gap-3">
-              <span className="text-sm">Noise</span>
-              <Slider
-                min={0}
-                max={0.15}
-                step={0.001}
-                value={[noise]}
-                onValueChange={([value]) => setNoise(value)}
+            <label className="flex items-center gap-3">
+              <span className="text-sm font-semibold">H</span>
+              <Input
+                type="number"
+                min={CANVAS_MIN_HEIGHT}
+                value={height}
+                onChange={(e) => setHeight(clamp(Number(e.target.value), CANVAS_MIN_HEIGHT, CANVAS_MAX_SIZE))}
+                className="w-16"
               />
             </label>
           </div>
@@ -723,7 +1100,8 @@ export default function Page() {
                     type="color"
                     value={color}
                     onChange={(e) => updateColor(index, e.target.value)}
-                    className="h-5 w-5 shrink-0 appearance-none rounded border-0 bg-transparent p-0"
+                    className="color-chip h-5 w-5 shrink-0 appearance-none rounded-full border-0 bg-transparent p-0"
+                    title={`Choose color ${index + 1}`}
                   />
                   <Input
                     value={color.replace('#', '')}

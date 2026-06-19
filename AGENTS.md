@@ -1,16 +1,18 @@
-# AGENTS.md — AgentOS Foundation v2.4.0 Ultra Lite
+# AGENTS.md — AgentOS Foundation v2.4.0 Ultra Lite for Photogradient
 
-최소 토큰으로 바이브코딩을 진행하기 위한 초경량 규칙이다.
+최소 토큰으로 Photogradient 작업을 진행하기 위한 초경량 규칙이다. 이 프로젝트의 실제 작업 루트는 `photogradient/`이며, 상위 폴더의 AgentOS 템플릿 디렉토리는 참고용으로만 본다.
 
 ## 핵심 규칙
 
 - 전체 저장소나 전체 `docs/`를 읽지 않는다.
+- AgentOS Lite zip 원본 구조로 `docs/states/`, `docs/templates/`, `docs/reports/`, `docs/handoffs/`를 확장하지 않는다.
 - 변경 작업이면 `docs/state.md`와 `docs/task-board.md`만 먼저 읽는다.
 - 작업 유형에 맞는 workflow 하나만 추가로 읽는다.
 - 한 번에 태스크 1개만 수행한다.
 - 다음 태스크는 사용자 승인 없이는 진행하지 않는다.
 - 새 패키지 설치, init, registry add, MCP 설정은 사용자 승인 후 실행한다.
 - 비밀키, 토큰, 개인정보는 출력하거나 기록하지 않는다.
+- `.next`, `.next.*`, `.DS_Store`, `node_modules`는 운영 문서나 Git 추적 대상으로 보지 않는다.
 
 ## 라우팅
 
@@ -49,4 +51,4 @@
 
 ## 완료 시 기록
 
-변경 작업을 했다면 `docs/state.md`와 `docs/task-board.md`만 갱신한다. 상세 report/handoff는 사용자가 요청할 때만 만든다.
+의미 있는 작업 묶음이 끝났다면 `docs/state.md`와 `docs/task-board.md`만 갱신한다. 버튼 라운드, 색상, shadow 같은 작은 반복 조정은 여러 건을 묶어서 한 번에 기록한다. 상세 report/handoff는 사용자가 요청할 때만 만든다.

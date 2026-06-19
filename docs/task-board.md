@@ -11,4 +11,10 @@
 | T007 | 완료 | 사이드바 footer 라인 컬러 통일 | footer 버튼 구분선이 panel divider와 같은 `--pg-border` token을 사용함 |
 | T008 | 완료 | dev/build `.next` 충돌 화면 깨짐 복구 | dev server 재시작 후 CSS 200 및 스크린샷 정상 렌더가 확인됨 |
 | T009 | 완료 | Gradient/Warp Shape 옵션 확장 | Gradient 5종, Warp Shape 7종이 UI와 렌더러에 연결되고 `tsc --noEmit`이 통과함 |
-| T010 | 대기 | style preset selector 구현 또는 Next 보안 패치 | 사용자가 다음 slice를 승인하고 검증이 통과함 |
+| T010 | 완료 | 드롭다운 UX 안정화 | chevron affordance, Portal-safe background fallback, capped option list가 적용되고 `npm run build`가 통과함 |
+| T011 | 완료 | 캔버스 컬러 포인트 핸들 | hover 시 포인트 핸들이 표시되고 드래그로 위치를 바꾸며 `npm run build`가 통과함 |
+| T012 | 완료 | 컬러 레이어 순서 드래그 변경 | Colors 리스트에서 드래그 핸들로 순서를 바꾸고 point position도 함께 이동함 |
+| T013 | 완료 | GitHub 초기 푸시 | `photogradient/` 저장소가 `visualog/gradient-factory` `main`에 푸시됨 |
+| T014 | 대기 | reorder/point handle UX polish | drop indicator, active handle state, drag performance polish가 검증됨 |
+| T015 | 완료 | Photogradient Ultra Lite 운영 구조 정리 | `AGENTS.md`가 실제 루트, 간소화 문서 구조, 잔여 빌드 파일 제외 기준, 문서 갱신 타이밍을 명시함 |
+| T016 | 완료 | 캔버스 외곽 경로 기반 컨트롤 배치 | Gradient/Warp Shape/Warp/Warp Size/Noise가 하나의 시퀀스로 상단, 코너 아크, 우측 edge를 따라 계산 배치됨 |

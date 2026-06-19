@@ -26,3 +26,23 @@ html, body {
 input[type='range'] {
   width: 100%;
 }
+
+.color-chip {
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.color-chip::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-chip::-webkit-color-swatch {
+  border: 0;
+  border-radius: 9999px;
+}
+
+.color-chip::-moz-color-swatch {
+  border: 0;
+  border-radius: 9999px;
+}
