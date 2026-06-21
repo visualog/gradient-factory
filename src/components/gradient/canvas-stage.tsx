@@ -1,11 +1,14 @@
 'use client'
 
-import type { Dispatch, PointerEvent, RefObject, SetStateAction } from 'react'
+import type { Dispatch, PointerEvent, ReactNode, RefObject, SetStateAction } from 'react'
+import { Download, Save } from 'lucide-react'
 import type { GradientStyle, WarpShape } from '@/lib/style-presets'
-import { CANVAS_CORNER_RADIUS, type PointPosition } from '@/lib/gradient-model'
+import { CANVAS_CORNER_RADIUS, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, type PointPosition } from '@/lib/gradient-model'
 import type { ResizeHandle } from '@/lib/resize-handles'
 import { PerimeterControls } from '@/components/gradient/perimeter-controls'
 import { ResizeHandleButton } from '@/components/gradient/resize-handle-button'
+import { SizeInput } from '@/components/gradient/size-input'
+import { Button } from '@/components/ui/button'
 
 type CanvasStageProps = {
   canvasAreaClass: string
@@ -13,6 +16,10 @@ type CanvasStageProps = {
   canvasRef: RefObject<HTMLCanvasElement>
   width: number
   height: number
+  setWidth: Dispatch<SetStateAction<number>>
+  setHeight: Dispatch<SetStateAction<number>>
+  saveToLibrary: () => void
+  download: () => void
   colors: string[]
   pointPositions: PointPosition[]
   warpedPointPositions: PointPosition[]
@@ -49,6 +56,10 @@ export function CanvasStage({
   canvasRef,
   width,
   height,
+  setWidth,
+  setHeight,
+  saveToLibrary,
+  download,
   colors,
   pointPositions,
   warpedPointPositions,
@@ -87,6 +98,11 @@ export function CanvasStage({
           }}
         />
         <PerimeterControls previewWidth={previewWidth} {...controls} />
+        <CanvasBottomControls>
+          <CanvasColorChips colors={colors} />
+          <CanvasSizeInputs width={width} height={height} setWidth={setWidth} setHeight={setHeight} />
+          <CanvasActions saveToLibrary={saveToLibrary} download={download} />
+        </CanvasBottomControls>
         <PointHandles
           colors={colors}
           pointPositions={pointPositions}
@@ -108,6 +124,66 @@ export function CanvasStage({
         />
       </div>
     </section>
+  )
+}
+
+function CanvasBottomControls({ children }: { children: ReactNode }) {
+  return <div className="pointer-events-none absolute left-0 top-full mt-3 flex max-w-full flex-wrap items-center gap-3">{children}</div>
+}
+
+function CanvasActions({ saveToLibrary, download }: { saveToLibrary: () => void; download: () => void }) {
+  return (
+    <div
+      data-testid="canvas-actions"
+      className="pointer-events-auto flex h-9 items-center gap-1 rounded-[12px] bg-white/[0.10] px-1.5 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+    >
+      <Button type="button" onClick={saveToLibrary} variant="ghost" size="icon" className="h-8 w-8 rounded-[10px]" title="Save to library" aria-label="Save to library">
+        <Save size={16} strokeWidth={1.8} />
+      </Button>
+      <Button type="button" onClick={download} variant="ghost" size="icon" className="h-8 w-8 rounded-[10px]" title="Download" aria-label="Download">
+        <Download size={16} strokeWidth={1.8} />
+      </Button>
+    </div>
+  )
+}
+
+function CanvasSizeInputs({
+  width,
+  height,
+  setWidth,
+  setHeight,
+}: {
+  width: number
+  height: number
+  setWidth: Dispatch<SetStateAction<number>>
+  setHeight: Dispatch<SetStateAction<number>>
+}) {
+  return (
+    <div
+      data-testid="canvas-size-inputs"
+      className="pointer-events-auto flex h-9 items-center gap-3 rounded-[12px] bg-white/[0.10] px-3 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+    >
+      <SizeInput label="W" min={CANVAS_MIN_WIDTH} value={width} onChange={setWidth} className="gap-2" inputClassName="pg-number-input w-20 pl-1 pr-7 text-right tabular-nums" inputTestId="canvas-width-input" showStepper />
+      <SizeInput label="H" min={CANVAS_MIN_HEIGHT} value={height} onChange={setHeight} className="gap-2" inputClassName="pg-number-input w-20 pl-1 pr-7 text-right tabular-nums" inputTestId="canvas-height-input" showStepper />
+    </div>
+  )
+}
+
+function CanvasColorChips({ colors }: { colors: string[] }) {
+  return (
+    <div
+      aria-hidden
+      data-testid="canvas-color-chips"
+      className="pointer-events-none flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+    >
+      {colors.map((color, index) => (
+        <span
+          key={`${color}-${index}`}
+          className="block h-5 w-5 rounded-full border border-white/45 shadow-[0_4px_14px_rgba(0,0,0,0.35)] ring-1 ring-black/25"
+          style={{ backgroundColor: color }}
+        />
+      ))}
+    </div>
   )
 }
 

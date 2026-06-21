@@ -2,6 +2,7 @@
 
 import type { PointerEvent } from 'react'
 import {
+  RESIZE_HANDLE_CORNER_BUTTON_SIZE,
   RESIZE_HANDLE_CORNER_STROKE_WIDTH,
   RESIZE_HANDLE_CORNER_SURFACE_WIDTH,
   RESIZE_HANDLES,
@@ -35,6 +36,8 @@ export function ResizeHandleButton({
           style={{
             left: `${handle.x}%`,
             top: `${handle.y}%`,
+            width: RESIZE_HANDLE_CORNER_BUTTON_SIZE,
+            height: RESIZE_HANDLE_CORNER_BUTTON_SIZE,
             cursor: handle.cursor,
             transform: `translate(calc(-50% + ${handle.offsetX}px), calc(-50% + ${handle.offsetY}px))`,
           }}
@@ -47,7 +50,6 @@ export function ResizeHandleButton({
         >
           {handle.shape === 'corner' ? (
             <>
-              <span aria-hidden className="absolute inset-2 rounded-[16px] bg-[var(--pg-bg)]/70 ring-1 ring-white/25 backdrop-blur-md" />
               <svg aria-hidden viewBox="0 0 48 48" fill="none" className={resizeHandleCornerClass(handle.id, activeResizeHandle)}>
                 <path
                   d={resizeHandleCornerPath(handle.id)}
@@ -64,10 +66,6 @@ export function ResizeHandleButton({
                   strokeLinejoin="round"
                 />
               </svg>
-              <span aria-hidden className="absolute bottom-3.5 right-3.5 flex flex-col gap-1">
-                <span className="block h-0.5 w-4 -rotate-45 rounded-full bg-white shadow-[0_1px_6px_rgba(0,0,0,0.8)]" />
-                <span className="ml-1 block h-0.5 w-3 -rotate-45 rounded-full bg-white shadow-[0_1px_6px_rgba(0,0,0,0.8)]" />
-              </span>
             </>
           ) : (
             <span aria-hidden className={resizeHandleBarClass(handle, activeResizeHandle)} />

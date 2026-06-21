@@ -157,6 +157,8 @@ export function useGradientStudio() {
       canvasRef,
       width,
       height,
+      setWidth,
+      setHeight,
       colors,
       pointPositions,
       warpedPointPositions,

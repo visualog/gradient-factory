@@ -1,8 +1,7 @@
-'use client'
-
-import { useEffect, useState, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import { Download, GripVertical, Plus, RefreshCw, Save } from 'lucide-react'
-import { CANVAS_MAX_SIZE, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, clamp } from '@/lib/gradient-model'
+import { CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH } from '@/lib/gradient-model'
+import { SizeInput } from '@/components/gradient/size-input'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -80,59 +79,6 @@ export function ControlPanel({
         </Button>
       </div>
     </aside>
-  )
-}
-
-function SizeInput({
-  label,
-  min,
-  value,
-  onChange,
-}: {
-  label: string
-  min: number
-  value: number
-  onChange: Dispatch<SetStateAction<number>>
-}) {
-  const [draft, setDraft] = useState(String(value))
-
-  useEffect(() => {
-    setDraft(String(value))
-  }, [value])
-
-  const commit = () => {
-    const parsed = Number(draft)
-    const next = Number.isFinite(parsed) ? Math.round(clamp(parsed, min, CANVAS_MAX_SIZE)) : value
-
-    setDraft(String(next))
-    onChange(next)
-  }
-
-  const updateDraft = (next: string) => {
-    setDraft(next)
-    const parsed = Number(next)
-
-    if (Number.isFinite(parsed) && parsed >= min && parsed <= CANVAS_MAX_SIZE) onChange(Math.round(parsed))
-  }
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') event.currentTarget.blur()
-  }
-
-  return (
-    <label className="flex items-center gap-3">
-      <span className="text-sm font-semibold">{label}</span>
-      <Input
-        type="number"
-        min={min}
-        max={CANVAS_MAX_SIZE}
-        value={draft}
-        onBlur={commit}
-        onChange={(event) => updateDraft(event.target.value)}
-        onKeyDown={handleKeyDown}
-        className="w-16"
-      />
-    </label>
   )
 }
 

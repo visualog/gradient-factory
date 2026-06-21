@@ -14,7 +14,7 @@ export function LibraryDock({ library, dockMouseX, loadSnapshot }: LibraryDockPr
   if (library.length === 0) return null
 
   return (
-    <section className="z-20 col-start-1 row-start-3 h-36 overflow-hidden lg:col-span-2 lg:row-start-2">
+    <section className="z-20 col-start-1 row-start-2 h-36 overflow-hidden">
       <div
         className="flex h-full items-end gap-6 overflow-x-auto overflow-y-visible px-1 pb-2 pt-12"
         onMouseMove={(event) => {

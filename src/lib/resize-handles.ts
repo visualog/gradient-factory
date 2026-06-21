@@ -2,14 +2,21 @@ import { CANVAS_CORNER_RADIUS } from '@/lib/gradient-model'
 
 const RESIZE_HANDLE_EDGE_OFFSET = 18
 const RESIZE_HANDLE_CORNER_GAP = 8
+export const RESIZE_HANDLE_CORNER_BUTTON_SIZE = 56
+const RESIZE_HANDLE_CORNER_VISUAL_INSET = 14
 export const RESIZE_HANDLE_CORNER_VIEWBOX = 48
 const RESIZE_HANDLE_CORNER_PATH_PADDING = 3
 export const RESIZE_HANDLE_CORNER_STROKE_WIDTH = 5
 export const RESIZE_HANDLE_CORNER_SURFACE_WIDTH = 16
 const RESIZE_HANDLE_CORNER_STROKE_HALF = RESIZE_HANDLE_CORNER_STROKE_WIDTH / 2
 const RESIZE_HANDLE_CORNER_FAR_EDGE = RESIZE_HANDLE_CORNER_VIEWBOX - RESIZE_HANDLE_CORNER_PATH_PADDING
+const RESIZE_HANDLE_CORNER_VISUAL_SCALE =
+  (RESIZE_HANDLE_CORNER_BUTTON_SIZE - RESIZE_HANDLE_CORNER_VISUAL_INSET * 2) / RESIZE_HANDLE_CORNER_VIEWBOX
 const RESIZE_HANDLE_CORNER_VISUAL_ALIGNMENT =
-  RESIZE_HANDLE_CORNER_FAR_EDGE - RESIZE_HANDLE_CORNER_VIEWBOX / 2 - RESIZE_HANDLE_CORNER_STROKE_HALF
+  RESIZE_HANDLE_CORNER_VISUAL_INSET +
+  RESIZE_HANDLE_CORNER_FAR_EDGE * RESIZE_HANDLE_CORNER_VISUAL_SCALE -
+  RESIZE_HANDLE_CORNER_BUTTON_SIZE / 2 -
+  RESIZE_HANDLE_CORNER_STROKE_HALF * RESIZE_HANDLE_CORNER_VISUAL_SCALE
 const RESIZE_HANDLE_CORNER_OFFSET = RESIZE_HANDLE_CORNER_GAP - RESIZE_HANDLE_CORNER_VISUAL_ALIGNMENT
 const RESIZE_HANDLE_CORNER_ARC_RADIUS =
   CANVAS_CORNER_RADIUS + RESIZE_HANDLE_CORNER_GAP + RESIZE_HANDLE_CORNER_STROKE_HALF
@@ -62,7 +69,7 @@ export function resizeHandleCornerClass(handleId: ResizeHandle['id'], activeResi
   const toneClass = activeResizeHandle === handleId ? 'text-white' : 'text-white group-hover/resize:text-white'
   const shadowClass = 'drop-shadow-[0_5px_14px_rgba(0,0,0,0.8)]'
 
-  return `absolute inset-1.5 transition-[color,filter,transform] duration-150 group-hover/resize:scale-105 ${toneClass} ${shadowClass}`
+  return `absolute inset-3.5 transition-[color,filter,transform] duration-150 group-hover/resize:scale-105 ${toneClass} ${shadowClass}`
 }
 
 export function resizeHandleCornerPath(handleId: ResizeHandle['id']) {
