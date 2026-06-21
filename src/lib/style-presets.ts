@@ -1,20 +1,6 @@
-export const GRADIENT_STYLES = [
-  'Sharp Bézier',
-  'Soft Mesh',
-  'Linear Fold',
-  'Conic Bloom',
-  'Cellular Glow',
-] as const
+export const GRADIENT_STYLES = ['Sharp Bézier', 'Soft Mesh', 'Linear Fold', 'Conic Bloom', 'Cellular Glow'] as const
 
-export const WARP_SHAPES = [
-  'Gravity',
-  'Wave',
-  'Radial',
-  'Spiral',
-  'Pinch',
-  'Ripple',
-  'Drift',
-] as const
+export const WARP_SHAPES = ['Gravity', 'Wave', 'Radial', 'Spiral', 'Pinch', 'Ripple', 'Drift'] as const
 
 export type GradientStyle = (typeof GRADIENT_STYLES)[number]
 export type WarpShape = (typeof WARP_SHAPES)[number]

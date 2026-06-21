@@ -18,3 +18,24 @@
 | T014 | 대기 | reorder/point handle UX polish | drop indicator, active handle state, drag performance polish가 검증됨 |
 | T015 | 완료 | Photogradient Ultra Lite 운영 구조 정리 | `AGENTS.md`가 실제 루트, 간소화 문서 구조, 잔여 빌드 파일 제외 기준, 문서 갱신 타이밍을 명시함 |
 | T016 | 완료 | 캔버스 외곽 경로 기반 컨트롤 배치 | Gradient/Warp Shape/Warp/Warp Size/Noise가 하나의 시퀀스로 상단, 코너 아크, 우측 edge를 따라 계산 배치됨 |
+| T017 | 완료 | 우상단 라운드 경로 컨트롤 보정 | `Warp Size`는 코너를 완만히 타고 `Noise`는 오른쪽 세로 레일로 내려가며 `tsc --noEmit`이 통과함 |
+| T018 | 완료 | Lite 파일 예산 준수 리팩터링 | `page.tsx`와 분리된 작업 파일들이 모두 250줄 이하이며 `tsc --noEmit`이 통과함 |
+| T019 | 완료 | 크기별 외곽 컨트롤 흐름 검증 | 브라우저에서 900px/640px 캔버스 크기별 컨트롤 배치를 확인하고 `Noise` 세로 레일 점프를 완충함 |
+| T020 | 완료 | 코너 곡선형 외곽 컨트롤 적용 | `Warp Size`가 좁은 캔버스에서 우상단 라운드 경로를 따라 흐르는 SVG path 컨트롤로 렌더됨 |
+| T021 | 완료 | 우하단 사이즈 조절 핸들 표시 복구 | 사이즈 핸들이 기본 상태에서도 은은하게 보이며 `tsc --noEmit`과 서버 200 검증이 통과함 |
+| T022 | 완료 | 우하단 사이즈 조절 핸들 상시 표시 강화 | 핸들이 `z-50`, `opacity-100`, `text-white/90`로 렌더되어 외곽 컨트롤 위에 항상 표시됨 |
+| T023 | 완료 | 코너 반응형 외곽 path 컨트롤 보정 | `Warp Size`가 코너를 피하지 않고 실제 perimeter 구간을 따라 직선-arc-우측 edge path로 휘어 렌더됨 |
+| T024 | 완료 | 우하단 코너 사이즈 핸들 바 시인성 강화 | 어두운 받침 stroke와 밝은 foreground stroke가 함께 렌더되어 그라디언트 위에서도 핸들 바가 보임 |
+| T025 | 완료 | 사이즈 조절 표시와 입력 반영 보정 | 우하단 핸들에 별도 그립 바가 보이고 W/H 입력이 draft/commit 방식으로 안정적으로 캔버스 preview에 반영됨 |
+| T026 | 완료 | Warp Size 코너 슬라이더 기존 형태 유지 | 코너 반응은 유지하면서 36px 알약 표면, 6px 트랙, 고정 라벨, 14px thumb로 기존 슬라이더 형태를 맞춤 |
+| T027 | 완료 | 코너 슬라이더 gap 겹침 보정 | SVG round cap이 gap 밖으로 튀어나오던 표면 path를 18px 안쪽으로 보정해 `Warp Size`와 `Noise` 사이 8px gap을 복구함 |
+| T028 | 완료 | Noise 슬라이더 path 적용 | `Noise`도 perimeter path 슬라이더로 렌더되어 36px 알약 표면, 6px 트랙, 90도 라벨 회전이 적용됨 |
+| T029 | 완료 | 외곽 path 슬라이더 공통화 | `Warp Size`와 `Noise`가 같은 path slider 계산을 사용하고 progress가 dash가 아닌 실제 path 조각으로 렌더됨 |
+| T030 | 완료 | Noise 코너 라벨 path 보정 | `Noise` 라벨이 코너 곡선 구간에서는 SVG `textPath`를 따라 렌더되고 직선 구간에서는 기존 라벨 정렬을 유지함 |
+| T031 | 완료 | Noise 우측 라벨 위치 보정 | `Noise`가 우측 세로 레일로 내려왔을 때 라벨 기준점이 상단 cap에 붙지 않도록 8px 아래로 보정됨 |
+| T032 | 완료 | Noise 우측 라벨 축 보정 | 우측 세로 레일의 `Noise` 라벨이 36px SVG 폭 안쪽 중심축에 들어오도록 x 기준점이 보정됨 |
+| T033 | 완료 | Noise 라벨 baseline 및 progress cap 보정 | 우측 세로 라벨에 baseline 중앙 정렬이 적용되고 path slider progress 시작점이 둥근 cap으로 렌더됨 |
+| T034 | 완료 | Path 슬라이더 컨테이너 radius 통일 | `Warp Size`와 `Noise` 표면 컨테이너가 완전 알약 cap 대신 12px radius filled path로 렌더됨 |
+| T035 | 완료 | Path 슬라이더 컨테이너 arc radius 보정 | 표면 컨테이너 코너가 `Q` 근사 대신 실제 `A 12 12` arc로 렌더되어 CSS radius와 더 맞게 보정됨 |
+| T036 | 완료 | Path 슬라이더 코너 gap 고정 | 표면 edge가 샘플 직선이 아닌 실제 offset arc를 따라 캔버스 코너와의 간격을 일정하게 유지함 |
+| T037 | 완료 | 캔버스 resize 중 previewWidth 동기화 | width/height 변경 직후 실제 frame 폭을 layout 단계에서 동기화해 외곽 컨트롤의 한 박자 지연을 줄임 |

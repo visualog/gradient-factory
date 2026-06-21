@@ -1,6 +1,6 @@
-# AGENTS.md — AgentOS Foundation v2.4.0 Ultra Lite for Photogradient
+# AGENTS.md — AgentOS Foundation v2.4.0 Lite-aligned for Photogradient
 
-최소 토큰으로 Photogradient 작업을 진행하기 위한 초경량 규칙이다. 이 프로젝트의 실제 작업 루트는 `photogradient/`이며, 상위 폴더의 AgentOS 템플릿 디렉토리는 참고용으로만 본다.
+최소 토큰으로 Photogradient 작업을 진행하되, Lite 에디션의 파일 예산과 리팩터링 규칙을 적용한다. 이 프로젝트의 실제 작업 루트는 현재 저장소 루트이며, 상위 폴더의 AgentOS 템플릿 디렉토리는 참고용으로만 본다.
 
 ## 핵심 규칙
 
@@ -13,6 +13,9 @@
 - 새 패키지 설치, init, registry add, MCP 설정은 사용자 승인 후 실행한다.
 - 비밀키, 토큰, 개인정보는 출력하거나 기록하지 않는다.
 - `.next`, `.next.*`, `.DS_Store`, `node_modules`는 운영 문서나 Git 추적 대상으로 보지 않는다.
+- 파일당 250줄 이하를 권장한다.
+- 파일당 300줄 초과를 금지한다.
+- 300줄에 가까워지면 기능 추가보다 분리/정리를 우선한다.
 
 ## 라우팅
 
@@ -21,6 +24,7 @@
 | General | 질문, 설명, 검토 | 없음 |
 | Feature | 만들기, 추가, 구현 | `docs/workflows/feature.md` |
 | Bugfix | 오류, 안 됨, 실패, 깨짐 | `docs/workflows/bugfix.md` |
+| Refactor | 구조 개선, 정리, 분리, 중복 제거 | `docs/workflows/refactor.md` |
 | Release | 배포, 릴리즈, 최종 점검 | `docs/workflows/release.md` |
 | UI | 화면, 컴포넌트, 스타일, 아이콘, 폰트, 차트, 모션 | `docs/workflows/feature.md` + `docs/design/style-system-rules.md` |
 
