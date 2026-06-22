@@ -1,14 +1,18 @@
 'use client'
 
 import type { Dispatch, PointerEvent, ReactNode, RefObject, SetStateAction } from 'react'
-import { Download, Save } from 'lucide-react'
+import type { MotionValue } from 'motion/react'
 import type { GradientStyle, WarpShape } from '@/lib/style-presets'
-import { CANVAS_CORNER_RADIUS, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, type PointPosition } from '@/lib/gradient-model'
+import { CANVAS_CORNER_RADIUS, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, type GradientSnapshot, type PointPosition } from '@/lib/gradient-model'
 import type { ResizeHandle } from '@/lib/resize-handles'
+import type { CanvasSizePreset, ExperimentLock } from '@/hooks/use-gradient-experiment'
+import { CanvasActions } from '@/components/gradient/canvas-actions'
+import { CanvasColorChips } from '@/components/gradient/canvas-color-chips'
+import { ExperimentToolbar } from '@/components/gradient/experiment-toolbar'
+import { LibraryDock } from '@/components/gradient/library-dock'
 import { PerimeterControls } from '@/components/gradient/perimeter-controls'
 import { ResizeHandleButton } from '@/components/gradient/resize-handle-button'
 import { SizeInput } from '@/components/gradient/size-input'
-import { Button } from '@/components/ui/button'
 
 type CanvasStageProps = {
   canvasAreaClass: string
@@ -21,6 +25,11 @@ type CanvasStageProps = {
   saveToLibrary: () => void
   download: () => void
   colors: string[]
+  updateColor: (index: number, value: string) => void
+  addColor: () => void
+  removeColor: (index: number) => void
+  lockedColorIndexes: number[]
+  toggleColorLock: (index: number) => void
   pointPositions: PointPosition[]
   warpedPointPositions: PointPosition[]
   activePointIndex: number | null
@@ -48,6 +57,27 @@ type CanvasStageProps = {
   beginCanvasResize: (handle: ResizeHandle, event: PointerEvent<HTMLButtonElement>) => void
   resizeCanvas: (event: PointerEvent<HTMLButtonElement>) => void
   endCanvasResize: (event: PointerEvent<HTMLButtonElement>) => void
+  libraryDock: {
+    library: GradientSnapshot[]
+    dockMouseX: MotionValue<number>
+    loadSnapshot: (snapshot: GradientSnapshot) => void
+    toggleFavorite: (id: number) => void
+    renameSnapshot: (id: number, name: string) => void
+    deleteSnapshot: (id: number) => void
+  }
+  experiment?: {
+    enabled: boolean
+    generateVariation: () => void
+    shufflePalette: () => void
+    applyCanvasPreset: (presetIndex: number) => void
+    experimentLocks: ExperimentLock[]
+    toggleExperimentLock: (lock: ExperimentLock) => void
+    shareGradient: () => void
+    copyCss: () => void
+    copyTailwind: () => void
+    downloadScale: (scale: number) => void
+    sizePresets: CanvasSizePreset[]
+  }
 }
 
 export function CanvasStage({
@@ -61,6 +91,11 @@ export function CanvasStage({
   saveToLibrary,
   download,
   colors,
+  updateColor,
+  addColor,
+  removeColor,
+  lockedColorIndexes,
+  toggleColorLock,
   pointPositions,
   warpedPointPositions,
   activePointIndex,
@@ -77,6 +112,8 @@ export function CanvasStage({
   beginCanvasResize,
   resizeCanvas,
   endCanvasResize,
+  libraryDock,
+  experiment,
 }: CanvasStageProps) {
   return (
     <section className={`relative z-10 col-start-1 row-start-1 flex min-h-0 w-full items-center justify-center rounded-[28px] lg:col-start-1 lg:row-start-1 ${canvasAreaClass}`}>
@@ -97,12 +134,31 @@ export function CanvasStage({
             boxShadow: '0 20px 80px rgba(0,0,0,0.45)',
           }}
         />
+        {experiment?.enabled ? (
+          <ExperimentToolbar
+            generateVariation={experiment.generateVariation}
+            shufflePalette={experiment.shufflePalette}
+            applyCanvasPreset={experiment.applyCanvasPreset}
+            experimentLocks={experiment.experimentLocks}
+            toggleExperimentLock={experiment.toggleExperimentLock}
+            sizePresets={experiment.sizePresets}
+          />
+        ) : null}
         <PerimeterControls previewWidth={previewWidth} {...controls} />
         <CanvasBottomControls>
-          <CanvasColorChips colors={colors} />
+          <CanvasColorChips
+            colors={colors}
+            updateColor={updateColor}
+            addColor={addColor}
+            removeColor={removeColor}
+            lockedColorIndexes={lockedColorIndexes}
+            toggleColorLock={toggleColorLock}
+            showLocks={Boolean(experiment?.enabled)}
+          />
           <CanvasSizeInputs width={width} height={height} setWidth={setWidth} setHeight={setHeight} />
-          <CanvasActions saveToLibrary={saveToLibrary} download={download} />
+          <CanvasActions saveToLibrary={saveToLibrary} download={download} experiment={experiment} />
         </CanvasBottomControls>
+        <LibraryDock {...libraryDock} />
         <PointHandles
           colors={colors}
           pointPositions={pointPositions}
@@ -131,22 +187,6 @@ function CanvasBottomControls({ children }: { children: ReactNode }) {
   return <div className="pointer-events-none absolute left-0 top-full mt-3 flex max-w-full flex-wrap items-center gap-3">{children}</div>
 }
 
-function CanvasActions({ saveToLibrary, download }: { saveToLibrary: () => void; download: () => void }) {
-  return (
-    <div
-      data-testid="canvas-actions"
-      className="pointer-events-auto flex h-9 items-center gap-1 rounded-[12px] bg-white/[0.10] px-1.5 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
-    >
-      <Button type="button" onClick={saveToLibrary} variant="ghost" size="icon" className="h-8 w-8 rounded-[10px]" title="Save to library" aria-label="Save to library">
-        <Save size={16} strokeWidth={1.8} />
-      </Button>
-      <Button type="button" onClick={download} variant="ghost" size="icon" className="h-8 w-8 rounded-[10px]" title="Download" aria-label="Download">
-        <Download size={16} strokeWidth={1.8} />
-      </Button>
-    </div>
-  )
-}
-
 function CanvasSizeInputs({
   width,
   height,
@@ -161,28 +201,10 @@ function CanvasSizeInputs({
   return (
     <div
       data-testid="canvas-size-inputs"
-      className="pointer-events-auto flex h-9 items-center gap-3 rounded-[12px] bg-white/[0.10] px-3 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+      className="pointer-events-auto flex h-9 items-center gap-3 rounded-[12px] bg-white/[0.10] px-3 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md transition-colors hover:bg-black/[0.16] focus-within:bg-black/[0.16] focus-within:ring-1 focus-within:ring-white/15 active:bg-black/[0.22]"
     >
-      <SizeInput label="W" min={CANVAS_MIN_WIDTH} value={width} onChange={setWidth} className="gap-2" inputClassName="pg-number-input w-20 pl-1 pr-7 text-right tabular-nums" inputTestId="canvas-width-input" showStepper />
-      <SizeInput label="H" min={CANVAS_MIN_HEIGHT} value={height} onChange={setHeight} className="gap-2" inputClassName="pg-number-input w-20 pl-1 pr-7 text-right tabular-nums" inputTestId="canvas-height-input" showStepper />
-    </div>
-  )
-}
-
-function CanvasColorChips({ colors }: { colors: string[] }) {
-  return (
-    <div
-      aria-hidden
-      data-testid="canvas-color-chips"
-      className="pointer-events-none flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
-    >
-      {colors.map((color, index) => (
-        <span
-          key={`${color}-${index}`}
-          className="block h-5 w-5 rounded-full border border-white/45 shadow-[0_4px_14px_rgba(0,0,0,0.35)] ring-1 ring-black/25"
-          style={{ backgroundColor: color }}
-        />
-      ))}
+      <SizeInput label="W" min={CANVAS_MIN_WIDTH} value={width} onChange={setWidth} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-width-input" showStepper />
+      <SizeInput label="H" min={CANVAS_MIN_HEIGHT} value={height} onChange={setHeight} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-height-input" showStepper />
     </div>
   )
 }

@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react'
 import type { GradientSnapshot } from '@/lib/gradient-model'
 
+const LIBRARY_LIMIT = 18
+
+function defaultSnapshotName(snapshot: GradientSnapshot, index: number) {
+  if (snapshot.name) return snapshot.name
+  return snapshot.kind === 'history' ? `Generated ${index + 1}` : `Saved ${index + 1}`
+}
+
 export function useGradientLibrary({
   captureGradient,
   applySnapshot,
@@ -17,7 +24,9 @@ export function useGradientLibrary({
     fetch('/api/library')
       .then((response) => response.json())
       .then((data: { library?: GradientSnapshot[] }) => {
-        if (!ignore && Array.isArray(data.library)) setLibrary(data.library)
+        if (!ignore && Array.isArray(data.library)) {
+          setLibrary(data.library.filter((item) => item.kind !== 'history'))
+        }
       })
       .catch(() => {
         if (!ignore) setLibrary([])
@@ -29,26 +38,60 @@ export function useGradientLibrary({
   }, [])
 
   const persistLibrary = (items: GradientSnapshot[]) => {
+    const savedItems = items.filter((item) => item.kind !== 'history')
+
     fetch('/api/library', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(items),
+      body: JSON.stringify(savedItems),
     }).catch(() => undefined)
+  }
+
+  const commitLibrary = (updater: (items: GradientSnapshot[]) => GradientSnapshot[], persist = true) => {
+    setLibrary((items) => {
+      const next = updater(items).slice(0, LIBRARY_LIMIT)
+      if (persist) persistLibrary(next)
+      return next
+    })
   }
 
   const saveToLibrary = () => {
     const snapshot = captureGradient()
     if (!snapshot) return null
-    setLibrary((items) => {
-      const next = [snapshot, ...items].slice(0, 12)
-      persistLibrary(next)
-      return next
-    })
-    return snapshot
+    const savedSnapshot = { ...snapshot, kind: 'saved' as const, favorite: true, name: snapshot.name ?? 'Saved gradient' }
+
+    commitLibrary((items) => [savedSnapshot, ...items])
+    return savedSnapshot
+  }
+
+  const recordHistory = (snapshot: GradientSnapshot | null) => {
+    if (!snapshot) return
+    commitLibrary((items) => [
+      { ...snapshot, kind: 'history' as const, favorite: false, name: snapshot.name ?? 'Generated' },
+      ...items,
+    ], false)
+  }
+
+  const toggleFavorite = (id: number) => {
+    commitLibrary((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, favorite: !item.favorite, kind: !item.favorite ? 'saved' : item.kind } : item
+      )
+    )
+  }
+
+  const renameSnapshot = (id: number, name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    commitLibrary((items) => items.map((item) => (item.id === id ? { ...item, name: trimmed } : item)))
+  }
+
+  const deleteSnapshot = (id: number) => {
+    commitLibrary((items) => items.filter((item) => item.id !== id))
   }
 
   const download = () => {
-    const snapshot = saveToLibrary()
+    const snapshot = captureGradient()
     if (!snapshot) return
     const a = document.createElement('a')
     a.href = snapshot.preview
@@ -56,5 +99,14 @@ export function useGradientLibrary({
     a.click()
   }
 
-  return { library, saveToLibrary, download, loadSnapshot: applySnapshot }
+  return {
+    library: library.map((snapshot, index) => ({ ...snapshot, name: defaultSnapshotName(snapshot, index) })),
+    saveToLibrary,
+    download,
+    loadSnapshot: applySnapshot,
+    recordHistory,
+    toggleFavorite,
+    renameSnapshot,
+    deleteSnapshot,
+  }
 }

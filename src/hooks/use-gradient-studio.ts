@@ -3,22 +3,31 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { useMotionValue } from 'motion/react'
 import { DEFAULT_STYLE_PRESET, type GradientStyle, type WarpShape } from '@/lib/style-presets'
-import { CANVAS_MAX_SIZE, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, DEFAULT_POINT_POSITIONS, WARP_PREVIEW_HIDE_DELAY, clamp, type GradientSnapshot, type PointPosition } from '@/lib/gradient-model'
+import { CANVAS_MAX_SIZE, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, DEFAULT_POINT_POSITIONS, PALETTE_BASE_COLOR_COUNT, PALETTE_MAX_COLOR_COUNT, WARP_PREVIEW_HIDE_DELAY, clamp, type GradientSnapshot, type PointPosition } from '@/lib/gradient-model'
 import { buildPoints, renderGradient } from '@/lib/gradient-renderer'
+import { decodeGradientState } from '@/lib/gradient-share'
 import { useCanvasInteractions } from '@/hooks/use-canvas-interactions'
 import { useColorLayers } from '@/hooks/use-color-layers'
+import { useGradientExperiment } from '@/hooks/use-gradient-experiment'
+import { useGradientExport } from '@/hooks/use-gradient-export'
 import { useGradientLibrary } from '@/hooks/use-gradient-library'
 
-export function useGradientStudio() {
+export function useGradientStudio(sharedState?: string | null) {
+  return useGradientStudioState(sharedState)
+}
+
+export function useGradientStudioState(sharedState?: string | null) {
   const canvasFrameRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const dockMouseX = useMotionValue(Number.POSITIVE_INFINITY)
   const warpPreviewTimeoutRef = useRef<number | null>(null)
   const didMountWarpPreviewRef = useRef(false)
+  const didApplySharedStateRef = useRef(false)
   const renderFrameRef = useRef<number | null>(null)
   const [showWarpPreview, setShowWarpPreview] = useState(false)
   const [isCanvasHovering, setIsCanvasHovering] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(648)
+  const [lockedColorIndexes, setLockedColorIndexes] = useState<number[]>([])
   const activePreset = DEFAULT_STYLE_PRESET
   const { classes, gradientDefaults } = activePreset
   const presetStyleVars = { '--pg-bg': activePreset.tokens.background, '--pg-canvas': activePreset.tokens.canvasSurface, '--pg-panel': activePreset.tokens.panel, '--pg-border': activePreset.tokens.panelBorder, '--pg-text': activePreset.tokens.text, '--pg-accent': activePreset.tokens.accent } as CSSProperties
@@ -31,7 +40,7 @@ export function useGradientStudio() {
   const [warpSize, setWarpSize] = useState(gradientDefaults.warpSize)
   const [noise, setNoise] = useState(gradientDefaults.noise)
   const colorLayers = useColorLayers(gradientDefaults.colors)
-  const { colors, setColors, pointPositions, setPointPositions, draggingColorIndex, setDraggingColorIndex, updateColor, reorderColorLayer, resetColors } = colorLayers
+  const { colors, setColors, pointPositions, setPointPositions, draggingColorIndex, setDraggingColorIndex, updateColor, addColor, removeColor: removeColorLayer, reorderColorLayer, resetColors } = colorLayers
 
   const renderState = useMemo(
     () => ({ width, height, colors, pointPositions, style, warpShape, warp, warpSize, noiseAmount: noise }),
@@ -123,10 +132,19 @@ export function useGradientStudio() {
   }
 
   const applySnapshot = (snapshot: GradientSnapshot) => {
+    const snapshotColors = snapshot.colors.filter(Boolean)
+    const nextColors = [...snapshotColors, ...gradientDefaults.colors]
+      .slice(0, PALETTE_MAX_COLOR_COUNT)
+      .slice(0, Math.max(PALETTE_BASE_COLOR_COUNT, Math.min(PALETTE_MAX_COLOR_COUNT, snapshotColors.length || gradientDefaults.colors.length)))
+    const nextPointPositions = nextColors.map((_, index) => {
+      const point = snapshot.pointPositions?.[index] ?? DEFAULT_POINT_POSITIONS[index] ?? { x: 0.5, y: 0.5 }
+      return { ...point }
+    })
+
     setWidth(clamp(snapshot.width, CANVAS_MIN_WIDTH, CANVAS_MAX_SIZE))
     setHeight(clamp(snapshot.height, CANVAS_MIN_HEIGHT, CANVAS_MAX_SIZE))
-    setColors([...snapshot.colors])
-    setPointPositions(snapshot.pointPositions?.length ? snapshot.pointPositions.map((point) => ({ ...point })) : DEFAULT_POINT_POSITIONS)
+    setColors(nextColors)
+    setPointPositions(nextPointPositions)
     setStyle(snapshot.style)
     setWarpShape(snapshot.warpShape)
     setWarp(snapshot.warp)
@@ -134,7 +152,51 @@ export function useGradientStudio() {
     setNoise(snapshot.noise)
   }
 
-  const { library, saveToLibrary, download, loadSnapshot } = useGradientLibrary({ captureGradient, applySnapshot })
+  const { library, saveToLibrary, download, loadSnapshot, toggleFavorite, renameSnapshot, deleteSnapshot } = useGradientLibrary({ captureGradient, applySnapshot })
+  const exportActions = useGradientExport(captureGradient)
+  const experimentActions = useGradientExperiment({
+    colors,
+    setColors,
+    setPointPositions,
+    setStyle,
+    setWarpShape,
+    setWarp,
+    setWarpSize,
+    setNoise,
+    lockedColorIndexes,
+    setWidth,
+    setHeight,
+    onGenerated: () => undefined,
+  })
+
+  useEffect(() => {
+    if (!sharedState || didApplySharedStateRef.current) return
+
+    const state = decodeGradientState(sharedState)
+    if (!state) return
+
+    didApplySharedStateRef.current = true
+    applySnapshot({
+      id: Date.now(),
+      preview: '',
+      ...state,
+    })
+  }, [sharedState])
+
+  const toggleColorLock = (index: number) => {
+    setLockedColorIndexes((current) =>
+      current.includes(index) ? current.filter((item) => item !== index) : [...current, index]
+    )
+  }
+
+  const removeColor = (index: number) => {
+    removeColorLayer(index)
+    setLockedColorIndexes((current) =>
+      current
+        .filter((item) => item !== index)
+        .map((item) => (item > index ? item - 1 : item))
+    )
+  }
 
   const updateCanvasHover = (event: PointerEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current
@@ -160,6 +222,11 @@ export function useGradientStudio() {
       setWidth,
       setHeight,
       colors,
+      updateColor,
+      addColor,
+      removeColor,
+      lockedColorIndexes,
+      toggleColorLock,
       pointPositions,
       warpedPointPositions,
       activePointIndex: canvasInteractions.activePointIndex,
@@ -177,6 +244,10 @@ export function useGradientStudio() {
       endCanvasResize: canvasInteractions.endCanvasResize,
     },
     controls: { style, setStyle, warpShape, setWarpShape, warp, setWarp, warpSize, setWarpSize, noise, setNoise },
+    experiment: {
+      ...experimentActions,
+      ...exportActions,
+    },
     panel: {
       width,
       height,
@@ -186,11 +257,13 @@ export function useGradientStudio() {
       draggingColorIndex,
       setDraggingColorIndex,
       updateColor,
+      addColor,
+      removeColor,
       reorderColorLayer,
       resetColors,
       saveToLibrary,
       download,
     },
-    dock: { library, dockMouseX, loadSnapshot },
+    dock: { library, dockMouseX, loadSnapshot, toggleFavorite, renameSnapshot, deleteSnapshot },
   }
 }

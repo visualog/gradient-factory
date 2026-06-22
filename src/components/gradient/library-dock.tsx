@@ -8,23 +8,42 @@ type LibraryDockProps = {
   library: GradientSnapshot[]
   dockMouseX: MotionValue<number>
   loadSnapshot: (snapshot: GradientSnapshot) => void
+  toggleFavorite: (id: number) => void
+  renameSnapshot: (id: number, name: string) => void
+  deleteSnapshot: (id: number) => void
 }
 
-export function LibraryDock({ library, dockMouseX, loadSnapshot }: LibraryDockProps) {
+export function LibraryDock({
+  library,
+  dockMouseX,
+  loadSnapshot,
+  toggleFavorite,
+  renameSnapshot,
+  deleteSnapshot,
+}: LibraryDockProps) {
   if (library.length === 0) return null
 
   return (
-    <section className="z-20 col-start-1 row-start-2 h-36 overflow-hidden">
+    <section className="pointer-events-auto absolute inset-y-0 right-full z-30 mr-4 hidden overflow-visible md:block">
       <div
-        className="flex h-full items-end gap-6 overflow-x-auto overflow-y-visible px-1 pb-2 pt-12"
+        className="library-dock-scroll flex h-full flex-col items-end gap-4 overflow-x-visible overflow-y-auto py-8 pl-4 pr-1"
         onMouseMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect()
-          dockMouseX.set(event.clientX - rect.left + event.currentTarget.scrollLeft)
+          dockMouseX.set(event.clientY - rect.top + event.currentTarget.scrollTop)
         }}
         onMouseLeave={() => dockMouseX.set(Number.POSITIVE_INFINITY)}
       >
         {library.map((snapshot, index) => (
-          <DockItem key={snapshot.id} snapshot={snapshot} index={index} mouseX={dockMouseX} onSelect={loadSnapshot} />
+          <DockItem
+            key={snapshot.id}
+            snapshot={snapshot}
+            index={index}
+            mouseX={dockMouseX}
+            onSelect={loadSnapshot}
+            onToggleFavorite={toggleFavorite}
+            onRename={renameSnapshot}
+            onDelete={deleteSnapshot}
+          />
         ))}
       </div>
     </section>

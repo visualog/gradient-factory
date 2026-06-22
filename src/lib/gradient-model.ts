@@ -8,6 +8,9 @@ export type PointPosition = {
 export type GradientSnapshot = {
   id: number
   preview: string
+  name?: string
+  favorite?: boolean
+  kind?: 'saved' | 'history'
   width: number
   height: number
   colors: string[]
@@ -21,11 +24,14 @@ export type GradientSnapshot = {
 
 export const WARP_PREVIEW_HIDE_DELAY = 900
 export const CANVAS_MIN_WIDTH = 640
-export const CANVAS_MIN_HEIGHT = 320
+export const CANVAS_MIN_HEIGHT = 640
 export const CANVAS_MAX_SIZE = 2048
 export const CANVAS_PREVIEW_MAX_WIDTH = 900
 export const CANVAS_CORNER_RADIUS = 24
 export const NOISE_MAX = 0.15
+export const PALETTE_BASE_COLOR_COUNT = 4
+export const PALETTE_MAX_COLOR_COUNT = 6
+export const PALETTE_EXTRA_COLORS = ['#C25EA5', '#7961D3']
 
 export const DEFAULT_POINT_POSITIONS: PointPosition[] = [
   { x: 0.18, y: 0.18 },

@@ -5,6 +5,8 @@ import {
   RESIZE_HANDLE_CORNER_BUTTON_SIZE,
   RESIZE_HANDLE_CORNER_STROKE_WIDTH,
   RESIZE_HANDLE_CORNER_SURFACE_WIDTH,
+  RESIZE_HANDLE_CORNER_VIEWBOX,
+  RESIZE_HANDLE_CORNER_VISUAL_INSET,
   RESIZE_HANDLES,
   resizeHandleBarClass,
   resizeHandleButtonClass,
@@ -50,16 +52,24 @@ export function ResizeHandleButton({
         >
           {handle.shape === 'corner' ? (
             <>
-              <svg aria-hidden viewBox="0 0 48 48" fill="none" className={resizeHandleCornerClass(handle.id, activeResizeHandle)}>
+              <svg
+                aria-hidden
+                viewBox={`0 0 ${RESIZE_HANDLE_CORNER_VIEWBOX} ${RESIZE_HANDLE_CORNER_VIEWBOX}`}
+                fill="none"
+                className={resizeHandleCornerClass(handle.id, activeResizeHandle)}
+                style={{ inset: RESIZE_HANDLE_CORNER_VISUAL_INSET }}
+              >
                 <path
                   d={resizeHandleCornerPath(handle.id)}
-                  stroke="rgba(9,11,16,0.72)"
+                  fill="none"
+                  stroke="rgba(9,11,16,0.45)"
                   strokeWidth={RESIZE_HANDLE_CORNER_SURFACE_WIDTH}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
                 <path
                   d={resizeHandleCornerPath(handle.id)}
+                  fill="none"
                   stroke="currentColor"
                   strokeWidth={RESIZE_HANDLE_CORNER_STROKE_WIDTH}
                   strokeLinecap="round"

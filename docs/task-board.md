@@ -52,3 +52,16 @@
 | T048 | 완료 | 하단 사이즈 입력 숫자 여백 보정 | W/H 입력 폭과 오른쪽 padding을 늘려 숫자와 native number 버튼 사이 여백을 확보함 |
 | T049 | 완료 | 하단 사이즈 입력 spinner 간격 재보정 | W/H 입력을 80px 폭과 왼쪽 정렬로 바꿔 숫자와 native spinner 사이 간격을 확보함 |
 | T050 | 완료 | 하단 사이즈 입력 정렬형 stepper 적용 | native number spinner를 숨기고 오른쪽 고정 custom stepper로 숫자와 버튼 정렬을 안정화함 |
+| T051 | 완료 | 그라디언트 서비스 개선 계획 문서화 | `docs/gradient-service-improvement-plan.md`에 8가지 개선 방향과 현재 A/B Lab 구현 상태를 저장함 |
+| T052 | 완료 | 제품 방향 히스토리 운영 규칙 추가 | 제품 방향, 개선 제안, A/B 실험 가설, 비교 결과를 `docs/`와 state/task-board에 기록하도록 `AGENTS.md`에 명시함 |
+| T053 | 완료 | 운영/제품 방향 문서 한글 작성 규칙 추가 | `docs/gradient-service-improvement-plan.md`를 한글로 전환하고 운영 문서는 기본 한글로 작성하도록 `AGENTS.md`에 명시함 |
+| T054 | 완료 | B Lab 공유와 export 확장 | 공유 URL 상태 복원, PNG 1x/2x/4x, CSS snippet, Tailwind snippet export를 추가함 |
+| T055 | 완료 | B Lab 설정 잠금과 결과 중심 라벨 추가 | 포인트/스타일/워프/노이즈 잠금과 결과 중심 스타일/워프 라벨을 추가하고 관련 컴포넌트를 300줄 이하로 분리함 |
+| T056 | 완료 | B Lab 생성 히스토리 자동 기록 | Generate 실행 결과를 좌측 library dock에 history 항목으로 자동 저장하도록 연결함 |
+| T057 | 완료 | 라이브러리 항목 관리 액션 추가 | dock 항목에 즐겨찾기, 이름 변경, 삭제 액션을 추가하고 API 저장 모델을 선택 필드로 확장함 |
+| T058 | 완료 | B Lab 화면 깨짐 복구와 툴바 겹침 보정 | dev 서버 재시작으로 asset 404 상태를 복구하고 실험 툴바를 compact 한 줄 배치로 조정함 |
+| T059 | 완료 | 캔버스 최소 크기 640 x 640 적용 | `CANVAS_MIN_HEIGHT`를 640으로 올려 입력, resize, snapshot 복원 최소 높이를 정사각 기준으로 맞춤 |
+| T060 | 완료 | Generate 저장 부작용 제거 | Generate 자동 history 저장 경로를 끊고 다운로드도 저장 없이 현재 캔버스만 내려받도록 수정함 |
+| T061 | 완료 | 사이즈 프리셋 용도와 비율 구체화 | Square 1:1, Story 9:16, Post 4:5, Wide 16:9로 라벨과 실제 크기를 export 기준에 맞춤 |
+| T062 | 완료 | 사이즈 프리셋을 플랫폼 그룹 드롭다운으로 변경 | Web, Mobile, Social optgroup 아래에 용도와 해상도를 함께 표시하도록 상단 툴바를 정리함 |
+| T063 | 완료 | 슬라이더 라벨 간격과 트랙 길이 통일 | `Warp`, `Warp Size`, `Noise`가 공통 12px 라벨 gap과 160px 트랙 길이를 사용하도록 정렬함 |

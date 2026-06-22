@@ -56,3 +56,25 @@ input[type='range'] {
   border: 0;
   border-radius: 9999px;
 }
+
+.library-dock-scroll {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 40px,
+    #000 calc(100% - 40px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 40px,
+    #000 calc(100% - 40px),
+    transparent 100%
+  );
+  scrollbar-width: none;
+}
+
+.library-dock-scroll::-webkit-scrollbar {
+  display: none;
+}

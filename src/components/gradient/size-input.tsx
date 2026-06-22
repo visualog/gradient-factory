@@ -52,7 +52,7 @@ export function SizeInput({ label, min, value, onChange, className = '', inputCl
   }
 
   return (
-    <label className={`flex items-center gap-3 ${className}`}>
+    <label className={`flex h-8 items-center gap-3 bg-transparent text-sm text-[var(--pg-text)] outline-none ${className}`}>
       <span className="text-sm font-semibold">{label}</span>
       <span className="relative">
         <Input
@@ -64,11 +64,11 @@ export function SizeInput({ label, min, value, onChange, className = '', inputCl
           onChange={(event) => updateDraft(event.target.value)}
           onInput={(event) => updateDraft(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
-          className={inputClassName}
+          className={`focus:bg-transparent focus:ring-0 ${inputClassName}`}
           data-testid={inputTestId}
         />
         {showStepper ? (
-          <span className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col overflow-hidden rounded-[4px] text-white/75">
+          <span className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col overflow-hidden rounded-[4px] text-white/75">
             <button type="button" tabIndex={-1} className="flex h-3.5 w-4 items-center justify-center hover:text-white" aria-label={`Increase ${label}`} onClick={() => stepBy(1)}>
               <ChevronUp size={12} strokeWidth={2.4} />
             </button>

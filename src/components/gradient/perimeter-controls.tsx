@@ -1,9 +1,9 @@
 'use client'
 
 import type { Dispatch, SetStateAction } from 'react'
-import { GRADIENT_STYLES, WARP_SHAPES, type GradientStyle, type WarpShape } from '@/lib/style-presets'
+import { GRADIENT_STYLES, GRADIENT_STYLE_LABELS, WARP_SHAPES, WARP_SHAPE_LABELS, type GradientStyle, type WarpShape } from '@/lib/style-presets'
 import { NOISE_MAX } from '@/lib/gradient-model'
-import { perimeterControlStyle } from '@/lib/perimeter-controls'
+import { SLIDER_LABEL_GAP, SLIDER_TRACK_LENGTH, perimeterControlStyle } from '@/lib/perimeter-controls'
 import { CornerSlider } from '@/components/gradient/corner-slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
@@ -45,7 +45,7 @@ export function PerimeterControls({
           <SelectContent className="max-h-36">
             {GRADIENT_STYLES.map((option) => (
               <SelectItem key={option} value={option}>
-                {option}
+                {GRADIENT_STYLE_LABELS[option]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -60,7 +60,7 @@ export function PerimeterControls({
           <SelectContent className="max-h-36">
             {WARP_SHAPES.map((option) => (
               <SelectItem key={option} value={option}>
-                {option}
+                {WARP_SHAPE_LABELS[option]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -69,7 +69,6 @@ export function PerimeterControls({
 
       <ControlSlider
         label="Warp"
-        widthClass="w-8"
         style={perimeterControlStyle('warp', previewWidth)}
         value={warp}
         max={1.5}
@@ -100,7 +99,6 @@ export function PerimeterControls({
 
 function ControlSlider({
   label,
-  widthClass,
   style,
   value,
   max,
@@ -108,7 +106,6 @@ function ControlSlider({
   onChange,
 }: {
   label: string
-  widthClass?: string
   style: React.CSSProperties
   value: number
   max: number
@@ -117,13 +114,14 @@ function ControlSlider({
 }) {
   return (
     <div
-      className="pointer-events-auto absolute flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
-      style={style}
+      className="pointer-events-auto absolute flex h-9 items-center rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md transition-colors hover:bg-white/[0.06] focus-within:bg-white/[0.06] focus-within:ring-1 focus-within:ring-white/15 active:bg-white/[0.08]"
+      style={{ ...style, gap: SLIDER_LABEL_GAP }}
     >
-      <span className={`${widthClass ?? 'shrink-0'} whitespace-nowrap text-[11px] font-medium text-white/80`}>{label}</span>
+      <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-white/80">{label}</span>
       <Slider
         aria-label={label}
-        className="min-w-[160px]"
+        className="shrink-0"
+        style={{ width: SLIDER_TRACK_LENGTH }}
         min={0}
         max={max}
         step={step}

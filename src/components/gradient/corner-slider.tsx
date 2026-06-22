@@ -4,6 +4,8 @@ import type { CSSProperties, PointerEvent } from 'react'
 import { clamp } from '@/lib/gradient-model'
 import {
   CONTROL_HEIGHT,
+  SLIDER_LABEL_GAP,
+  SLIDER_TRACK_LENGTH,
   perimeterControlStart,
   perimeterControlWidth,
   perimeterPathGeometry,
@@ -17,8 +19,7 @@ const TRACK_STROKE_WIDTH = 6
 const THUMB_RADIUS = 7
 const LABEL_OFFSET = 12
 const TRACK_END_OFFSET = 16
-const TRACK_LENGTH = 160
-const LABEL_PATH_LENGTH = 72
+const LABEL_CHARACTER_WIDTH = 6.2
 const SIDE_LABEL_INSET = 8
 
 type PathRange = {
@@ -44,16 +45,20 @@ function controlRange(controlId: PerimeterControlId): PathRange {
   return { end, length: end - start, start }
 }
 
-function trackRange(range: PathRange): PathRange {
-  const start = Math.max(range.start + LABEL_OFFSET * 2, range.end - TRACK_END_OFFSET - TRACK_LENGTH)
-  const end = range.end - TRACK_END_OFFSET
+function labelLength(label: string) {
+  return Math.ceil(label.length * LABEL_CHARACTER_WIDTH)
+}
+
+function trackRange(range: PathRange, label: string): PathRange {
+  const start = range.start + LABEL_OFFSET + labelLength(label) + SLIDER_LABEL_GAP
+  const end = Math.min(start + SLIDER_TRACK_LENGTH, range.end - TRACK_END_OFFSET)
 
   return { end, length: end - start, start }
 }
 
-function labelRange(range: PathRange): PathRange {
+function labelRange(range: PathRange, label: string): PathRange {
   const start = range.start + LABEL_OFFSET
-  const end = Math.min(range.end - LABEL_OFFSET, start + LABEL_PATH_LENGTH)
+  const end = Math.min(range.end - LABEL_OFFSET, start + labelLength(label))
 
   return { end, length: end - start, start }
 }
@@ -155,12 +160,12 @@ function valueFromPointer(
 
 export function CornerSlider({ controlId, label, previewWidth, value, max, step, onChange }: CornerSliderProps) {
   const range = controlRange(controlId)
-  const track = trackRange(range)
+  const track = trackRange(range, label)
   const progress = clamp(value / max, 0, 1)
   const progressDistance = track.start + track.length * progress
   const thumbDistance = clamp(progressDistance, track.start + THUMB_RADIUS, track.end - THUMB_RADIUS)
   const thumb = perimeterPointAt(thumbDistance, previewWidth)
-  const labelSlot = labelRange(range)
+  const labelSlot = labelRange(range, label)
   const baseLabelPoint = perimeterPointAt(range.start, previewWidth)
   const straightLabelDistance = baseLabelPoint.angle >= 80 ? range.start + SIDE_LABEL_INSET : range.start
   const labelPoint = perimeterPointAt(straightLabelDistance, previewWidth)
@@ -189,7 +194,7 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
 
   return (
     <svg
-      className="pointer-events-auto absolute overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+      className="group/corner-slider pointer-events-auto absolute overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
       style={style}
       viewBox={`0 0 ${width} ${height}`}
       onPointerDown={(event) => {
@@ -206,7 +211,10 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
           <path id={labelPathId} d={curvedLabelPath} />
         </defs>
       ) : null}
-      <path d={surfacePath} fill="rgba(255,255,255,0.10)" />
+      <path
+        d={surfacePath}
+        className="fill-white/[0.10] transition-colors group-hover/corner-slider:fill-white/[0.06] group-active/corner-slider:fill-white/[0.08]"
+      />
       <path d={trackPath} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={TRACK_STROKE_WIDTH} strokeLinecap="round" pathLength={100} />
       {progressPath ? (
         <path d={progressPath} fill="none" stroke="var(--pg-accent)" strokeWidth={TRACK_STROKE_WIDTH} strokeLinecap="round" />

@@ -4,14 +4,16 @@ import { CANVAS_CORNER_RADIUS } from '@/lib/gradient-model'
 export const CONTROL_RAIL_GAP = 12
 export const CONTROL_ITEM_GAP = 8
 export const CONTROL_HEIGHT = 36
+export const SLIDER_LABEL_GAP = 12
+export const SLIDER_TRACK_LENGTH = 160
 const CONTROL_SURFACE_RADIUS = 12
 
 const PERIMETER_CONTROLS = [
   { id: 'style', width: 136 },
   { id: 'warpShape', width: 112 },
-  { id: 'warp', width: 224 },
-  { id: 'warpSize', width: 248 },
-  { id: 'noise', width: 224 },
+  { id: 'warp', width: 228 },
+  { id: 'warpSize', width: 256 },
+  { id: 'noise', width: 232 },
 ] as const
 
 export type PerimeterControlId = (typeof PERIMETER_CONTROLS)[number]['id']

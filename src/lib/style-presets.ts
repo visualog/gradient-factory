@@ -4,6 +4,24 @@ export const WARP_SHAPES = ['Gravity', 'Wave', 'Radial', 'Spiral', 'Pinch', 'Rip
 
 export type GradientStyle = (typeof GRADIENT_STYLES)[number]
 export type WarpShape = (typeof WARP_SHAPES)[number]
+
+export const GRADIENT_STYLE_LABELS: Record<GradientStyle, string> = {
+  'Sharp Bézier': 'Poster Grain',
+  'Soft Mesh': 'Soft Glow',
+  'Linear Fold': 'Product Backdrop',
+  'Conic Bloom': 'Chrome Bloom',
+  'Cellular Glow': 'Editorial Mesh',
+}
+
+export const WARP_SHAPE_LABELS: Record<WarpShape, string> = {
+  Gravity: 'Soft Pull',
+  Wave: 'Liquid Wave',
+  Radial: 'Center Bloom',
+  Spiral: 'Twist Flow',
+  Pinch: 'Tight Focus',
+  Ripple: 'Ripple Field',
+  Drift: 'Slow Drift',
+}
 export type VisualStyle = 'vega' | 'nova' | 'luma' | 'rhea' | 'mira' | 'maia' | 'lyra' | 'sera'
 
 export type StylePreset = {
@@ -88,7 +106,7 @@ const vegaPreset: StylePreset = {
     labelGap: 8,
   },
   gradientDefaults: {
-    colors: ['#EB4679', '#051681', '#EE7F7D', '#265BC9', '#C25EA5', '#7961D3'],
+    colors: ['#EB4679', '#051681', '#EE7F7D', '#265BC9'],
     warp: 0.4,
     warpSize: 1,
     noise: 0.08,
