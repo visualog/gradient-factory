@@ -2,6 +2,8 @@
 
 import { useState, type Dispatch, type SetStateAction } from 'react'
 import { BASE_GRADIENT_STYLES, WARP_SHAPES, type GradientStyle, type WarpShape } from '@/lib/style-presets'
+import { DEFAULT_GRADIENT_MASK, type GradientMaskEffect } from '@/lib/gradient-mask-effects'
+import { DEFAULT_GRADIENT_STEPS } from '@/lib/gradient-step-blend'
 import {
   CANVAS_MAX_SIZE,
   CANVAS_MIN_HEIGHT,
@@ -64,6 +66,8 @@ export function useGradientExperiment({
   setWarpSize,
   setNoise,
   setVignette,
+  setMask,
+  setSteps,
   lockedColorIndexes,
   setWidth,
   setHeight,
@@ -79,6 +83,8 @@ export function useGradientExperiment({
   setWarpSize: Dispatch<SetStateAction<number>>
   setNoise: Dispatch<SetStateAction<number>>
   setVignette: Dispatch<SetStateAction<number>>
+  setMask: Dispatch<SetStateAction<GradientMaskEffect>>
+  setSteps: Dispatch<SetStateAction<number>>
   lockedColorIndexes: number[]
   setWidth: Dispatch<SetStateAction<number>>
   setHeight: Dispatch<SetStateAction<number>>
@@ -107,6 +113,8 @@ export function useGradientExperiment({
       setNoise(uiPreset?.noise ?? Number((0.025 + Math.random() * 0.105).toFixed(3)))
       setVignette(uiPreset?.vignette ?? DEFAULT_VIGNETTE)
     }
+    setMask(uiPreset?.mask ?? DEFAULT_GRADIENT_MASK)
+    setSteps(uiPreset?.steps ?? DEFAULT_GRADIENT_STEPS)
     onGenerated()
   }
 

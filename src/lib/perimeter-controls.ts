@@ -4,6 +4,9 @@ import { CANVAS_CORNER_RADIUS } from '@/lib/gradient-model'
 export const CONTROL_RAIL_GAP = 12
 export const CONTROL_ITEM_GAP = 8
 export const CONTROL_HEIGHT = 36
+export const CONTROL_HEIGHT_CLASS = 'h-9 min-h-9'
+export const CONTROL_SURFACE_CLASS = `${CONTROL_HEIGHT_CLASS} rounded-[12px] bg-white/[0.10] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md`
+export const CONTROL_INTERACTIVE_SURFACE_CLASS = `${CONTROL_SURFACE_CLASS} transition-colors hover:bg-white/[0.06] focus-within:bg-white/[0.06] focus-within:ring-1 focus-within:ring-white/15 active:bg-white/[0.08]`
 export const SLIDER_LABEL_GAP = 12
 export const SLIDER_TRACK_LENGTH = 160
 const CONTROL_SURFACE_RADIUS = 12
@@ -15,6 +18,8 @@ const PERIMETER_CONTROLS = [
   { id: 'warpSize', width: 256 },
   { id: 'noise', width: 232 },
   { id: 'vignette', width: 248 },
+  { id: 'mask', width: 132 },
+  { id: 'steps', width: 232 },
 ] as const
 
 export type PerimeterControlId = (typeof PERIMETER_CONTROLS)[number]['id']

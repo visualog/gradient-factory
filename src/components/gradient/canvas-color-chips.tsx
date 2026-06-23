@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Lock, Plus, Unlock, X } from 'lucide-react'
 import { PALETTE_BASE_COLOR_COUNT, PALETTE_MAX_COLOR_COUNT } from '@/lib/gradient-model'
+import { CONTROL_SURFACE_CLASS } from '@/lib/perimeter-controls'
 
 const QUICK_COLORS = ['#FF2E78', '#F15BD9', '#73E8FF', '#7FEAFF', '#5369FF', '#7B35FF', '#58F079', '#D8FF18', '#FF7A30', '#FF4214', '#FFFFFF', '#050505']
 
@@ -40,7 +41,7 @@ export function CanvasColorChips({
     <div
       ref={pickerRef}
       data-testid="canvas-color-chips"
-      className="pointer-events-auto flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+      className={`pointer-events-auto flex items-center gap-2 px-3 ${CONTROL_SURFACE_CLASS}`}
     >
       {colors.map((color, index) => (
         <span key={`${color}-${index}`} className="group/palette-chip relative block h-5 w-5 shrink-0">

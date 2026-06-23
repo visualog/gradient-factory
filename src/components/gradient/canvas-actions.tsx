@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Code2, Copy, Download, FileImage, Link2, Save } from 'lucide-react'
+import { CONTROL_SURFACE_CLASS } from '@/lib/perimeter-controls'
 import { Button } from '@/components/ui/button'
 
 type ExportActions = {
@@ -35,7 +36,7 @@ export function CanvasActions({
   return (
     <div
       data-testid="canvas-actions"
-      className="pointer-events-auto relative flex h-9 items-center gap-1 rounded-[12px] bg-white/[0.10] px-1.5 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
+      className={`pointer-events-auto relative flex items-center gap-1 px-1.5 text-[var(--pg-text)] ${CONTROL_SURFACE_CLASS}`}
     >
       <Button type="button" onClick={saveToLibrary} variant="ghost" size="icon" className={actionButtonClass} title="Save to library" aria-label="Save to library">
         <Save size={16} strokeWidth={1.8} />

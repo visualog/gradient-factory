@@ -3,6 +3,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react'
 import type { CanvasSizePreset } from '@/hooks/use-gradient-experiment'
 import { CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH } from '@/lib/gradient-model'
+import { CONTROL_INTERACTIVE_SURFACE_CLASS } from '@/lib/perimeter-controls'
 import { SizeInput } from '@/components/gradient/size-input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -41,7 +42,7 @@ export function CanvasSizeControls({
   return (
     <div
       data-testid="canvas-size-inputs"
-      className="pointer-events-auto flex h-9 items-center gap-3 rounded-[12px] bg-white/[0.10] px-3 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md transition-colors hover:bg-white/[0.06] focus-within:bg-white/[0.06] focus-within:ring-1 focus-within:ring-white/15 active:bg-white/[0.08]"
+      className={`pointer-events-auto flex items-center gap-3 px-3 text-[var(--pg-text)] ${CONTROL_INTERACTIVE_SURFACE_CLASS}`}
     >
       {showPresets ? (
         <SizePresetSelect

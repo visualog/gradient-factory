@@ -60,6 +60,8 @@ export function useGradientExport(captureGradient: () => GradientSnapshot | null
       warpSize: snapshot.warpSize,
       noiseAmount: snapshot.noise,
       vignetteAmount: snapshot.vignette,
+      maskEffect: snapshot.mask,
+      stepAmount: snapshot.steps,
     })
     maskCanvasCorners(canvas, (snapshot.cornerRadius ?? 0) * scale)
 

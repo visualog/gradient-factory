@@ -1,4 +1,5 @@
 import { GRADIENT_STYLES, WARP_SHAPES, type GradientStyle, type WarpShape } from '@/lib/style-presets'
+import { GRADIENT_MASK_EFFECTS, type GradientMaskEffect } from '@/lib/gradient-mask-effects'
 import type { GradientSnapshot, PointPosition } from '@/lib/gradient-model'
 
 export type GradientStatePayload = Omit<GradientSnapshot, 'id' | 'preview'>
@@ -9,6 +10,10 @@ function isGradientStyle(value: unknown): value is GradientStyle {
 
 function isWarpShape(value: unknown): value is WarpShape {
   return typeof value === 'string' && (WARP_SHAPES as readonly string[]).includes(value)
+}
+
+function isGradientMaskEffect(value: unknown): value is GradientMaskEffect {
+  return typeof value === 'string' && (GRADIENT_MASK_EFFECTS as readonly string[]).includes(value)
 }
 
 function isPoint(value: unknown): value is PointPosition {
@@ -39,6 +44,8 @@ export function snapshotToState(snapshot: GradientSnapshot): GradientStatePayloa
     warpSize: snapshot.warpSize,
     noise: snapshot.noise,
     vignette: snapshot.vignette,
+    mask: snapshot.mask,
+    steps: snapshot.steps,
   }
 }
 
@@ -76,6 +83,8 @@ export function decodeGradientState(value: string): GradientStatePayload | null 
       warpSize: parsed.warpSize,
       noise: parsed.noise,
       vignette: typeof parsed.vignette === 'number' ? parsed.vignette : undefined,
+      mask: isGradientMaskEffect(parsed.mask) ? parsed.mask : undefined,
+      steps: typeof parsed.steps === 'number' ? parsed.steps : undefined,
     }
   } catch {
     return null

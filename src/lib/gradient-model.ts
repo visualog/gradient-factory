@@ -1,4 +1,5 @@
 import type { GradientStyle, WarpShape } from '@/lib/style-presets'
+import type { GradientMaskEffect } from '@/lib/gradient-mask-effects'
 
 export type PointPosition = {
   x: number
@@ -22,6 +23,8 @@ export type GradientSnapshot = {
   warpSize: number
   noise: number
   vignette?: number
+  mask?: GradientMaskEffect
+  steps?: number
 }
 
 export const WARP_PREVIEW_HIDE_DELAY = 900

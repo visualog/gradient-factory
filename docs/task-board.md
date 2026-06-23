@@ -88,3 +88,15 @@
 | T084 | 완료 | C Lab 캔버스 radius 조절 모드 추가 | 우하단 resize 핸들의 좌/우 끝을 radius 조절 영역으로 확장하고 radius 값을 share/export/snapshot 경로에 포함함 |
 | T085 | 완료 | 사이즈/radius 핸들 hover 흔들림 제거 | 우하단 핸들의 hover scale transform을 제거하고 hover mode state 갱신을 줄여 커서만 바뀌고 geometry는 유지되도록 수정함 |
 | T086 | 완료 | C Lab radius drag 감도 완화 | radius 조절 delta에 0.55 감도를 적용하고 Node 테스트를 `*.test.mjs`로 분리해 typecheck와 함께 검증되도록 정리함 |
+| T087 | 완료 | C Lab 구조적 그라디언트 형태 3종 추가 | `Sparkle Field`, `Hex Glow`, `Star Burst` 프리셋과 렌더러 weight field를 추가하고 드롭다운/선택 동작을 확인함 |
+| T088 | 완료 | C Lab 마스크 효과 4종 추가 | `Mask` 외곽 컨트롤과 `Mask Off`/`Radial Mask`/`Band Mask`/`Grain Mask`를 렌더러, 스냅샷, 공유, export 경로에 연결함 |
+| T089 | 완료 | C Lab 마스크 레퍼런스 영상형 보정 | 밝기 필터형 마스크를 제거하고 `Glass Arcs`, `Vertical Strips`, `Step Ramp` 도형 마스크와 alpha clipping 렌더링으로 교체함 |
+| T090 | 완료 | C Lab 패턴 글라스 오버레이 보정 | 마스크를 캔버스 clipping이 아닌 그라디언트 위의 glass layer로 재정의하고 `Glass Arcs`, `Glass Strips`, `Glass Ramp` overlay를 적용함 |
+| T091 | 완료 | C Lab 전체 캔버스 굴절 글라스 보정 | `Ribbed Glass`, `Pebble Glass`, `Ripple Glass`가 캔버스 전체를 덮고 아래 그라디언트 샘플 좌표를 왜곡하도록 렌더러를 보정함 |
+| T092 | 완료 | C Lab Steps 단계감 조절 추가 | `Steps` 외곽 슬라이더를 추가하고 smooth color와 posterized color 사이 보간 값을 렌더러, 스냅샷, 공유, export 경로에 연결함 |
+| T093 | 완료 | C Lab Steps 단계 수 1차 보정 | `Steps`를 0..10 정수 단계 수로 바꾸고 snapshot/share/export/generate preset 경로에 유지되도록 수정함 |
+| T094 | 완료 | C Lab Steps gradient별 단계 보정 | 최종 RGB 포스터라이즈 대신 각 컬러 포인트의 gradient influence를 0..10 단계로 quantize해 개별 그라디언트 band가 보이도록 수정함 |
+| T095 | 완료 | C Lab Fluid Veil 프리셋 추가 | `Fluid Veil` 스타일과 C Lab 프리셋을 추가하고 포인트 기반 flow/ribbon weight field가 기존 Flow, Spread, Mask, Steps 경로와 함께 렌더되도록 연결함 |
+| T096 | 완료 | C Lab A 기본 스타일과 Coolors 팔레트 추가 | `Sharp Bézier`, `Soft Mesh`, `Linear Fold`, `Conic Bloom`, `Cellular Glow`를 C Lab 스타일에 추가하고 Coolors popular gradient 페이지에서 확인한 상위 팔레트 색상으로 프리셋을 구성함 |
+| T097 | 완료 | 캔버스 외곽 바 높이 통일 | 상단 외곽 컨트롤과 하단 컬러칩/사이즈/액션 바가 공통 36px 높이 토큰과 surface class를 사용함 |
+| T098 | 완료 | C Lab Steps 슬라이더 방향 반전 | 내부 단계 값은 유지하고 UI 슬라이더만 반전해 기본 smooth 상태가 오른쪽 최고값에 놓이도록 함 |

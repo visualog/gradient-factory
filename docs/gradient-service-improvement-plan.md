@@ -106,12 +106,15 @@ C Lab에 반영된 항목:
 - C Lab 기본 URL: `/?ab=c-lab`
 - C Lab Compare 포함: `/?ab=compare`에서 `A Current`, `B Lab`, `C Lab` 3분할 비교
 - 목적: 첨부 레퍼런스처럼 편집 가능한 UI gradient resource 타일 스타일을 검증
-- 등록된 레퍼런스 스타일 12종: `Flame Inset`, `Lime Violet Drift`, `Mint Dome`, `Cyan Ribbon`, `Violet Well`, `Solar Slash`, `Candy Wave`, `Lime Gate`, `Pop Horizon`, `Dusk Shelf`, `Blue Core`, `Rose Orbit`
-- 첫 번째 Gradient Style 드롭다운에서 12종을 선택하면 색상, 컬러 포인트, 워프 형태, Warp, Spread, Noise가 함께 적용됨
-- `Generate`: C Lab에서는 12종 레퍼런스 스타일 중 하나를 통째로 적용
+- 등록된 레퍼런스 스타일 21종: A 타입 기본 스타일 `Sharp Bézier`, `Soft Mesh`, `Linear Fold`, `Conic Bloom`, `Cellular Glow`와 C Lab 전용 16종
+- 첫 번째 Gradient Style 드롭다운에서 21종을 선택하면 색상, 컬러 포인트, 워프 형태, Warp, Spread, Noise가 함께 적용됨
+- `Generate`: C Lab에서는 21종 레퍼런스 스타일 중 하나를 통째로 적용
 - C Lab 최초 상태: 640 x 640, cyan/magenta/dark 기반 `Cyan Ribbon` 프리셋으로 시작
-- 렌더링 계약: 12종 스타일은 배경 이미지나 별도 픽셀 레이어가 아니라 공통 그라디언트 렌더러의 weight field로 생성되어야 하며, 컬러 포인트 핸들이 실제 색 덩어리와 밴드의 기준점이 되어야 함
+- 렌더링 계약: 21종 스타일은 배경 이미지나 별도 픽셀 레이어가 아니라 공통 그라디언트 렌더러의 weight field로 생성되어야 하며, 컬러 포인트 핸들이 실제 색 덩어리와 밴드의 기준점이 되어야 함
 - `Vignette`: `Grain` 다음 외곽 컨트롤에서 코너/외곽 어두움 강도를 별도로 조절
+- A 타입 기본 스타일: `Sharp Bézier`, `Soft Mesh`, `Linear Fold`, `Conic Bloom`, `Cellular Glow`는 Coolors popular gradient 페이지에서 확인한 상위 팔레트 색상으로 구성한다.
+- 구조적 형태: `Sparkle Field`, `Hex Glow`, `Star Burst`는 sparkle ray, hex field, star burst weight field를 사용해 일반 blob보다 뚜렷한 형태감을 만든다.
+- Fluid 형태: `Fluid Veil`은 포인트 기반 flow/ribbon weight field와 `Drift` warp를 사용해 정적인 blob보다 흐르는 액체감을 만든다.
 
 ## 다음 실험 후보
 
@@ -145,21 +148,28 @@ C Lab에 반영된 항목:
 
    그라디언트 위에 별도 마스크 레이어를 추가해 결과를 더 강하게 변형한다. 마스크는 색상 자체보다 알파, 밝기, blur, vignette, pattern을 제어하는 보조 레이어로 다룬다.
 
-   - radial mask
-   - stripe 또는 band mask
-   - noise/grain mask
-   - shape mask
-   - export 시 마스크 효과가 PNG와 CSS/Tailwind fallback에 어떻게 반영되는지 별도 정의 필요
+   - C Lab 1차 보정: `Mask` 외곽 컨트롤로 `Mask Off`, `Ribbed Glass`, `Pebble Glass`, `Ripple Glass`를 선택
+   - ribbed glass mask: 세로 ribbed 패턴이 캔버스 전체를 덮고 아래 그라디언트를 좌우로 굴절
+   - pebble glass mask: 불규칙한 셀 패턴이 아래 그라디언트를 국소적으로 왜곡
+   - ripple glass mask: 물결형 유리 표면처럼 샘플 좌표와 하이라이트를 함께 변형
+   - shape mask는 canvas alpha를 자르기보다 전체 화면 lens layer로 우선 구현
+   - PNG export에는 렌더러 결과를 반영하고, CSS/Tailwind fallback은 현재 gradient background 중심으로 유지
 
 4. 부드러움과 단계감 조절
 
    같은 그라디언트라도 아주 부드러운 blur field와 계단식 posterized field 사이를 조절할 수 있게 한다.
 
    - Smooth: 색 전환을 더 부드럽게 보간
-   - Steps: 색상 단계가 보이는 posterize/quantize 표현
-   - Blend: 두 상태 사이를 연속적으로 조절
-   - C Lab에서는 `Grain`, `Vignette` 근처의 외곽 컨트롤 후보로 검토
+   - Steps: 각 컬러 포인트의 gradient band가 단계적으로 보이는 quantize 표현
+   - Blend: 필요 시 smooth와 stepped 결과 사이를 별도 강도로 조절
+   - C Lab 구현: `Steps` 외곽 슬라이더를 0..10 정수 단계 수로 사용
+   - `0`은 smooth 원본, `10`은 각 gradient influence를 10개 discrete band로 quantize
+   - 단계 수 값은 snapshot, 공유 URL, PNG export, C Lab generate preset 경로에 포함
 
 5. Fluid gradient 계열
 
    정적인 field를 넘어 흐르는 액체감의 gradient preset을 추가한다. 초기 구현은 실제 시뮬레이션보다 포인트 기반 flow field와 ribbon distortion으로 시작하고, 필요할 때 canvas animation 또는 export 가능한 frame/snapshot 전략을 검토한다.
+
+   - C Lab 1차 구현: `Fluid Veil` 프리셋을 추가하고 flow/ribbon weight field로 렌더
+   - 현재 범위: 정적 canvas snapshot 중심, 기존 `Flow`, `Spread`, `Mask`, `Steps` 컨트롤 재사용
+   - 이후 후보: animation preview, frame export, fluid preset 추가 확장

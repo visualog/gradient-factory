@@ -1,6 +1,6 @@
 # State
 
 - Current Task: 없음
-- Status: C Lab radius drag 감도 완화
-- Latest Summary: 우하단 핸들의 radius 조절 감도를 0.55배로 낮춰 작은 손 움직임에도 corner radius가 덜 튀도록 조정했습니다. radius 계산 테스트는 Node `*.test.mjs`로 분리해 TypeScript typecheck 대상에서 제외했습니다.
-- Next Step: C Lab의 다음 실험 후보인 sparkle/hexagon/star 같은 구조적 그라디언트 형태 확장을 검토하세요.
+- Status: C Lab Steps 슬라이더 방향 반전
+- Latest Summary: `Steps` 내부 렌더 값은 `0 = smooth`, `10 = stepped`로 유지하면서 UI 슬라이더 입력만 반전해 기본 smooth 상태가 오른쪽 최고값에 놓이도록 변경했습니다.
+- Next Step: 브라우저에서 C Lab 기본 상태와 단계감 조절 방향이 의도대로 느껴지는지 확인하세요.

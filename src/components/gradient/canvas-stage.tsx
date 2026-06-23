@@ -3,6 +3,7 @@
 import type { Dispatch, PointerEvent, ReactNode, RefObject, SetStateAction } from 'react'
 import type { MotionValue } from 'motion/react'
 import type { GradientStyle, WarpShape } from '@/lib/style-presets'
+import type { GradientMaskEffect } from '@/lib/gradient-mask-effects'
 import type { GradientSnapshot, PointPosition } from '@/lib/gradient-model'
 import type { ResizeHandle } from '@/lib/resize-handles'
 import type { CanvasSizePreset, ExperimentLock } from '@/hooks/use-gradient-experiment'
@@ -55,6 +56,10 @@ type CanvasStageProps = {
     setNoise: Dispatch<SetStateAction<number>>
     vignette: number
     setVignette: Dispatch<SetStateAction<number>>
+    mask: GradientMaskEffect
+    setMask: Dispatch<SetStateAction<GradientMaskEffect>>
+    steps: number
+    setSteps: Dispatch<SetStateAction<number>>
   }
   beginPointDrag: (index: number, event: PointerEvent<HTMLButtonElement>) => void
   movePointDrag: (index: number, event: PointerEvent<HTMLButtonElement>) => void

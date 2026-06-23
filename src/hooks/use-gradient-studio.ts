@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { useMotionValue } from 'motion/react'
 import { DEFAULT_STYLE_PRESET, type GradientStyle, type WarpShape } from '@/lib/style-presets'
+import { DEFAULT_GRADIENT_MASK } from '@/lib/gradient-mask-effects'
+import { DEFAULT_GRADIENT_STEPS } from '@/lib/gradient-step-blend'
 import { CANVAS_CORNER_RADIUS, CANVAS_MAX_SIZE, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, DEFAULT_POINT_POSITIONS, DEFAULT_VIGNETTE, PALETTE_BASE_COLOR_COUNT, PALETTE_MAX_COLOR_COUNT, WARP_PREVIEW_HIDE_DELAY, clamp, type GradientSnapshot, type PointPosition } from '@/lib/gradient-model'
 import { buildPoints, renderGradient } from '@/lib/gradient-renderer'
 import { decodeGradientState } from '@/lib/gradient-share'
@@ -43,10 +45,12 @@ export function useGradientStudioState(sharedState?: string | null, experimentPr
   const [warpSize, setWarpSize] = useState(gradientDefaults.warpSize)
   const [noise, setNoise] = useState(gradientDefaults.noise)
   const [vignette, setVignette] = useState(DEFAULT_VIGNETTE)
+  const [mask, setMask] = useState(DEFAULT_GRADIENT_MASK)
+  const [steps, setSteps] = useState(DEFAULT_GRADIENT_STEPS)
   const colorLayers = useColorLayers(gradientDefaults.colors)
   const { colors, setColors, pointPositions, setPointPositions, draggingColorIndex, setDraggingColorIndex, updateColor, addColor, removeColor: removeColorLayer, reorderColorLayer, resetColors } = colorLayers
 
-  const renderState = useMemo(() => ({ width, height, colors, pointPositions, style, warpShape, warp, warpSize, noiseAmount: noise, vignetteAmount: vignette }), [width, height, colors, pointPositions, style, warpShape, warp, warpSize, noise, vignette])
+  const renderState = useMemo(() => ({ width, height, colors, pointPositions, style, warpShape, warp, warpSize, noiseAmount: noise, vignetteAmount: vignette, maskEffect: mask, stepAmount: steps }), [width, height, colors, pointPositions, style, warpShape, warp, warpSize, noise, vignette, mask, steps])
   const warpedPointPositions = useMemo(() => buildPoints(colors, pointPositions, warpShape, warp).map(({ x, y }) => ({ x, y })), [colors, pointPositions, warpShape, warp])
   const canvasInteractions = useCanvasInteractions({ canvasRef, width, height, canvasRadius, setWidth, setHeight, setCanvasRadius, setPointPositions })
   const showPointHandles = isCanvasHovering || canvasInteractions.activePointIndex !== null
@@ -138,6 +142,8 @@ export function useGradientStudioState(sharedState?: string | null, experimentPr
       warpSize,
       noise,
       vignette,
+      mask,
+      steps,
     }
   }
 
@@ -162,6 +168,8 @@ export function useGradientStudioState(sharedState?: string | null, experimentPr
     setWarpSize(snapshot.warpSize)
     setNoise(snapshot.noise)
     setVignette(snapshot.vignette ?? DEFAULT_VIGNETTE)
+    setMask(snapshot.mask ?? DEFAULT_GRADIENT_MASK)
+    setSteps(snapshot.steps ?? DEFAULT_GRADIENT_STEPS)
   }
 
   const setStyleWithPreset = (next: GradientStyle) => {
@@ -181,6 +189,8 @@ export function useGradientStudioState(sharedState?: string | null, experimentPr
     setWarpSize,
     setNoise,
     setVignette,
+    setMask,
+    setSteps,
     lockedColorIndexes,
     setWidth,
     setHeight,
@@ -206,11 +216,7 @@ export function useGradientStudioState(sharedState?: string | null, experimentPr
 
   const removeColor = (index: number) => {
     removeColorLayer(index)
-    setLockedColorIndexes((current) =>
-      current
-        .filter((item) => item !== index)
-        .map((item) => (item > index ? item - 1 : item))
-    )
+    setLockedColorIndexes((current) => current.filter((item) => item !== index).map((item) => (item > index ? item - 1 : item)))
   }
 
   const updateCanvasHover = (event: PointerEvent<HTMLDivElement>) => {
@@ -266,7 +272,7 @@ export function useGradientStudioState(sharedState?: string | null, experimentPr
       resizeCanvas: canvasInteractions.resizeCanvas,
       endCanvasResize: canvasInteractions.endCanvasResize,
     },
-    controls: { style, setStyle: setStyleWithPreset, warpShape, setWarpShape, warp, setWarp: setWarpWithFlow, warpSize, setWarpSize: setWarpSizeWithFlow, noise, setNoise, vignette, setVignette },
+    controls: { style, setStyle: setStyleWithPreset, warpShape, setWarpShape, warp, setWarp: setWarpWithFlow, warpSize, setWarpSize: setWarpSizeWithFlow, noise, setNoise, vignette, setVignette, mask, setMask, steps, setSteps },
     experiment: {
       ...experimentActions,
       ...exportActions,

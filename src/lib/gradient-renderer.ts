@@ -1,5 +1,8 @@
 import type { GradientStyle, WarpShape } from '@/lib/style-presets'
 import { DEFAULT_VIGNETTE, clamp, hexToRgb, pseudoNoise, smoothstep, type PointPosition } from '@/lib/gradient-model'
+import { getStructureGradientFamily } from '@/lib/gradient-structure-styles'
+import { DEFAULT_GRADIENT_MASK, gradientGlassMaskDisplacement, gradientGlassMaskOverlay, gradientMaskCoverage, type GradientMaskEffect } from '@/lib/gradient-mask-effects'
+import { DEFAULT_GRADIENT_STEPS, applyGradientWeightSteps } from '@/lib/gradient-step-blend'
 
 type ColorPoint = {
   color: string
@@ -76,12 +79,47 @@ function gradientWeight(style: GradientStyle, nx: number, ny: number, point: Col
     return 1 / Math.pow(ribbon * 3.2 + scaledDistance * 2.5 + 0.18, 1.68)
   }
 
+  const structureFamily = getStructureGradientFamily(style)
+  if (structureFamily === 'sparkle') {
+    const angle = Math.atan2(dy, dx)
+    const ray = Math.pow(Math.abs(Math.cos(angle * 4)), 18)
+    const core = smoothstep(0.2, 0.015, scaledDistance)
+    return 1 / Math.pow(scaledDistance * 8 + 0.18, 1.35) + ray / Math.pow(scaledDistance * 7 + 0.32, 1.62) + core * 1.3
+  }
+
+  if (structureFamily === 'hex') {
+    const angle = Math.atan2(dy, dx)
+    const sector = Math.abs(((angle + Math.PI / 6) % (Math.PI / 3)) - Math.PI / 6)
+    const hexDistance = (d * Math.cos(Math.PI / 6)) / Math.max(0.2, Math.cos(sector)) / spread
+    const edge = smoothstep(0.18, 0.04, Math.abs(hexDistance - 0.32))
+    return 1 / Math.pow(hexDistance * 5.6 + scaledDistance * 1.4 + 0.16, 1.55) + edge * 0.8
+  }
+
+  if (structureFamily === 'star') {
+    const angle = Math.atan2(dy, dx)
+    const starRadius = (0.2 + 0.14 * Math.cos(angle * 5)) * spread
+    const starDistance = Math.abs(d - starRadius) / spread
+    const core = smoothstep(0.2, 0.02, scaledDistance)
+    return 1 / Math.pow(starDistance * 5.4 + scaledDistance * 2.1 + 0.2, 1.48) + core
+  }
+
+  if (structureFamily === 'fluid') {
+    const angle = Math.sin((nx * 1.6 + ny * 1.1 + point.x) * Math.PI * (1.2 + flow)) * 0.9 + point.y * Math.PI
+    const c = Math.cos(angle)
+    const s = Math.sin(angle)
+    const ribbonWave = Math.sin((nx * 3.1 - ny * 2.4 + point.y) * Math.PI * (1.4 + flow)) * 0.06 * flow
+    const ribbon = Math.abs(dx * c + dy * s + ribbonWave) / spread
+    const stream = Math.abs(dx * -s + dy * c) / spread
+    const core = smoothstep(0.26, 0.04, scaledDistance)
+    return 1 / Math.pow(ribbon * 6.2 + stream * 1.15 + scaledDistance * 1.35 + 0.15, 1.55) + core * 0.7
+  }
+
   const cellEdge = smoothstep(0.18, 0.02, scaledDistance)
   return 1 / Math.pow(scaledDistance * 5.4 + 0.2, 1.45) + cellEdge * 0.65
 }
 
 function isUiGlowStyle(style: GradientStyle) {
-  return isOneOf(style, INSET_STYLES) || isOneOf(style, BAND_STYLES) || isOneOf(style, CUSHION_STYLES) || isOneOf(style, TWIST_STYLES)
+  return isOneOf(style, INSET_STYLES) || isOneOf(style, BAND_STYLES) || isOneOf(style, CUSHION_STYLES) || isOneOf(style, TWIST_STYLES) || getStructureGradientFamily(style) !== null
 }
 
 function uiFieldShade(style: GradientStyle, nx: number, ny: number, vignette: number) {
@@ -93,6 +131,7 @@ function uiFieldShade(style: GradientStyle, nx: number, ny: number, vignette: nu
   if (isOneOf(style, INSET_STYLES)) return edgeShade * (1 - smoothstep(0.04, 0.32, ny) * 0.22)
   if (isOneOf(style, BAND_STYLES)) return edgeShade * 1.05
   if (isOneOf(style, CUSHION_STYLES)) return edgeShade * (1 + smoothstep(0.8, 0.1, Math.hypot(nx - 0.5, ny - 0.5)) * 0.08)
+  if (getStructureGradientFamily(style)) return edgeShade * 1.08
   return edgeShade * 0.96
 }
 
@@ -166,6 +205,8 @@ export function renderGradient(
     warpSize,
     noiseAmount,
     vignetteAmount = DEFAULT_VIGNETTE,
+    maskEffect = DEFAULT_GRADIENT_MASK,
+    stepAmount = DEFAULT_GRADIENT_STEPS,
   }: {
     width: number
     height: number
@@ -177,6 +218,8 @@ export function renderGradient(
     warpSize: number
     noiseAmount: number
     vignetteAmount?: number
+    maskEffect?: GradientMaskEffect
+    stepAmount?: number
   }
 ) {
   canvas.width = width
@@ -197,12 +240,17 @@ export function renderGradient(
     for (let x = 0; x < width; x++) {
       const nx = x / width
       const ny = y / height
+      const displacement = gradientGlassMaskDisplacement(maskEffect, nx, ny)
+      const sampleX = clamp(nx + displacement.x, 0, 1)
+      const sampleY = clamp(ny + displacement.y, 0, 1)
       let r = 0
       let g = 0
       let b = 0
       let total = 0
       for (const p of points) {
-        const weight = gradientWeight(style, nx, ny, p, spread, warp)
+        const rawWeight = gradientWeight(style, sampleX, sampleY, p, spread, warp)
+        const influence = rawWeight / (rawWeight + 1)
+        const weight = stepAmount > 0 ? Math.max(0.0001, applyGradientWeightSteps(influence, stepAmount)) : rawWeight
         r += p.rgb.r * weight
         g += p.rgb.g * weight
         b += p.rgb.b * weight
@@ -210,15 +258,20 @@ export function renderGradient(
       }
 
       const grain = (pseudoNoise(x * 0.9, y * 0.9) - 0.5) * 255 * noiseAmount
-      const radius = Math.hypot(nx - 0.5, ny - 0.5)
+      const radius = Math.hypot(sampleX - 0.5, sampleY - 0.5)
       const baseVignette = smoothstep(uiGlow ? 0.82 : 0.95, uiGlow ? 0.18 : 0.2, radius)
       const vignette = uiGlow ? 1 - clamp(vignetteAmount, 0, 1) * (1 - baseVignette) : baseVignette
-      const lift = uiGlow ? uiFieldShade(style, nx, ny, vignetteAmount) * 1.08 : 1
+      const lift = uiGlow ? uiFieldShade(style, sampleX, sampleY, vignetteAmount) * 1.08 : 1
+      const mask = gradientMaskCoverage(maskEffect, nx, ny)
+      const glass = gradientGlassMaskOverlay(maskEffect, nx, ny)
       const i = (y * width + x) * 4
-      data[i] = clamp((r / total) * vignette * lift + grain, 0, 255)
-      data[i + 1] = clamp((g / total) * vignette * lift + grain, 0, 255)
-      data[i + 2] = clamp((b / total) * vignette * lift + grain, 0, 255)
-      data[i + 3] = 255
+      const baseR = total > 0 ? r / total : 0
+      const baseG = total > 0 ? g / total : 0
+      const baseB = total > 0 ? b / total : 0
+      data[i] = clamp(baseR * vignette * lift * glass.shade + glass.highlight * 255 + glass.edge * 18 + grain, 0, 255)
+      data[i + 1] = clamp(baseG * vignette * lift * glass.shade + glass.highlight * 255 + glass.edge * 22 + grain, 0, 255)
+      data[i + 2] = clamp(baseB * vignette * lift * glass.shade + glass.highlight * 255 + glass.edge * 28 + grain, 0, 255)
+      data[i + 3] = clamp(255 * mask, 0, 255)
     }
   }
 
