@@ -13,6 +13,7 @@ export type GradientSnapshot = {
   kind?: 'saved' | 'history'
   width: number
   height: number
+  cornerRadius?: number
   colors: string[]
   pointPositions?: PointPosition[]
   style: GradientStyle
@@ -20,6 +21,7 @@ export type GradientSnapshot = {
   warp: number
   warpSize: number
   noise: number
+  vignette?: number
 }
 
 export const WARP_PREVIEW_HIDE_DELAY = 900
@@ -29,6 +31,8 @@ export const CANVAS_MAX_SIZE = 2048
 export const CANVAS_PREVIEW_MAX_WIDTH = 900
 export const CANVAS_CORNER_RADIUS = 24
 export const NOISE_MAX = 0.15
+export const VIGNETTE_MAX = 1
+export const DEFAULT_VIGNETTE = 0.62
 export const PALETTE_BASE_COLOR_COUNT = 4
 export const PALETTE_MAX_COLOR_COUNT = 6
 export const PALETTE_EXTRA_COLORS = ['#C25EA5', '#7961D3']

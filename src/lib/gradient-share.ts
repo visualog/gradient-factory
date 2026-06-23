@@ -30,6 +30,7 @@ export function snapshotToState(snapshot: GradientSnapshot): GradientStatePayloa
   return {
     width: snapshot.width,
     height: snapshot.height,
+    cornerRadius: snapshot.cornerRadius,
     colors: snapshot.colors,
     pointPositions: snapshot.pointPositions,
     style: snapshot.style,
@@ -37,6 +38,7 @@ export function snapshotToState(snapshot: GradientSnapshot): GradientStatePayloa
     warp: snapshot.warp,
     warpSize: snapshot.warpSize,
     noise: snapshot.noise,
+    vignette: snapshot.vignette,
   }
 }
 
@@ -65,6 +67,7 @@ export function decodeGradientState(value: string): GradientStatePayload | null 
     return {
       width: parsed.width,
       height: parsed.height,
+      cornerRadius: typeof parsed.cornerRadius === 'number' ? parsed.cornerRadius : undefined,
       colors: parsed.colors,
       pointPositions: Array.isArray(parsed.pointPositions) ? parsed.pointPositions.filter(isPoint) : undefined,
       style: parsed.style,
@@ -72,6 +75,7 @@ export function decodeGradientState(value: string): GradientStatePayload | null 
       warp: parsed.warp,
       warpSize: parsed.warpSize,
       noise: parsed.noise,
+      vignette: typeof parsed.vignette === 'number' ? parsed.vignette : undefined,
     }
   } catch {
     return null
@@ -87,16 +91,16 @@ export function cssGradientSnippet(snapshot: GradientSnapshot) {
     return `radial-gradient(circle at ${Math.round(point.x * 100)}% ${Math.round(point.y * 100)}%, ${color} 0, transparent 42%)`
   })
 
-  return `background:\n  ${layers.join(',\n  ')},\n  #0b0d12;`
+  return `background:\n  ${layers.join(',\n  ')},\n  #0b0d12;\nborder-radius: ${snapshot.cornerRadius ?? 0}px;`
 }
 
 export function tailwindGradientSnippet(snapshot: GradientSnapshot) {
-  const compact = cssGradientSnippet(snapshot)
+  const compact = cssGradientSnippet(snapshot).split('\nborder-radius')[0]
     .replace('background:\n  ', '')
     .replace(/,\n  /g, ',')
     .replace(/;$/, '')
     .replace(/\s+/g, '_')
     .replace(/,/g, '\\,')
 
-  return `className="bg-[${compact}]"`
+  return `className="bg-[${compact}] rounded-[${snapshot.cornerRadius ?? 0}px]"`
 }

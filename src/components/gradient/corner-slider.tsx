@@ -182,6 +182,7 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
   const straightLabelY = labelPoint.y - minY + 4
 
   const update = (event: PointerEvent<SVGSVGElement>) => {
+    event.preventDefault()
     const point = event.currentTarget.createSVGPoint()
     const matrix = event.currentTarget.getScreenCTM()
     if (!matrix) return
@@ -192,9 +193,13 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
     onChange(clamp(next, 0, max))
   }
 
+  const release = (event: PointerEvent<SVGSVGElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+  }
+
   return (
     <svg
-      className="group/corner-slider pointer-events-auto absolute overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+      className="group/corner-slider pointer-events-none absolute touch-none overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
       style={style}
       viewBox={`0 0 ${width} ${height}`}
       onPointerDown={(event) => {
@@ -202,8 +207,10 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
         update(event)
       }}
       onPointerMove={(event) => {
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) update(event)
+        if (event.currentTarget.hasPointerCapture(event.pointerId) || event.buttons === 1) update(event)
       }}
+      onPointerUp={release}
+      onPointerCancel={release}
       aria-label={label}
     >
       {curvedLabelPath ? (
@@ -213,11 +220,11 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
       ) : null}
       <path
         d={surfacePath}
-        className="fill-white/[0.10] transition-colors group-hover/corner-slider:fill-white/[0.06] group-active/corner-slider:fill-white/[0.08]"
+        className="pointer-events-auto cursor-pointer fill-white/[0.10] transition-colors group-hover/corner-slider:fill-white/[0.06] group-active/corner-slider:fill-white/[0.08]"
       />
-      <path d={trackPath} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={TRACK_STROKE_WIDTH} strokeLinecap="round" pathLength={100} />
+      <path className="pointer-events-auto cursor-pointer" d={trackPath} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={TRACK_STROKE_WIDTH} strokeLinecap="round" pathLength={100} />
       {progressPath ? (
-        <path d={progressPath} fill="none" stroke="var(--pg-accent)" strokeWidth={TRACK_STROKE_WIDTH} strokeLinecap="round" />
+        <path className="pointer-events-auto cursor-pointer" d={progressPath} fill="none" stroke="var(--pg-accent)" strokeWidth={TRACK_STROKE_WIDTH} strokeLinecap="round" />
       ) : null}
       {curvedLabelPath ? (
         <text className="fill-current text-[11px] font-medium opacity-80">
@@ -236,7 +243,7 @@ export function CornerSlider({ controlId, label, previewWidth, value, max, step,
           {label}
         </text>
       )}
-      <circle cx={thumb.x - minX} cy={thumb.y - minY} r={THUMB_RADIUS} fill="var(--pg-text)" stroke="var(--pg-bg)" strokeWidth="1.5" />
+      <circle className="pointer-events-auto cursor-grab active:cursor-grabbing" cx={thumb.x - minX} cy={thumb.y - minY} r={THUMB_RADIUS} fill="var(--pg-text)" stroke="var(--pg-bg)" strokeWidth="1.5" />
     </svg>
   )
 }

@@ -1,7 +1,10 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { Lock, Plus, Unlock, X } from 'lucide-react'
 import { PALETTE_BASE_COLOR_COUNT, PALETTE_MAX_COLOR_COUNT } from '@/lib/gradient-model'
+
+const QUICK_COLORS = ['#FF2E78', '#F15BD9', '#73E8FF', '#7FEAFF', '#5369FF', '#7B35FF', '#58F079', '#D8FF18', '#FF7A30', '#FF4214', '#FFFFFF', '#050505']
 
 export function CanvasColorChips({
   colors,
@@ -21,9 +24,21 @@ export function CanvasColorChips({
   showLocks: boolean
 }) {
   const emptySlotCount = Math.max(0, PALETTE_MAX_COLOR_COUNT - colors.length)
+  const [activeColorIndex, setActiveColorIndex] = useState<number | null>(null)
+  const pickerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (activeColorIndex === null) return
+    const close = (event: PointerEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) setActiveColorIndex(null)
+    }
+    window.addEventListener('pointerdown', close)
+    return () => window.removeEventListener('pointerdown', close)
+  }, [activeColorIndex])
 
   return (
     <div
+      ref={pickerRef}
       data-testid="canvas-color-chips"
       className="pointer-events-auto flex h-9 items-center gap-2 rounded-[12px] bg-white/[0.10] px-3 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md"
     >
@@ -40,19 +55,18 @@ export function CanvasColorChips({
               {lockedColorIndexes.includes(index) ? <Lock size={8} strokeWidth={2.2} /> : <Unlock size={8} strokeWidth={2.2} />}
             </button>
           ) : null}
-          <label
+          <button
+            type="button"
             className={`block h-5 w-5 cursor-pointer rounded-full border border-white/45 shadow-[0_4px_14px_rgba(0,0,0,0.35)] ring-1 ring-black/25 transition-transform hover:scale-110 focus-within:scale-110 focus-within:ring-2 focus-within:ring-white ${lockedColorIndexes.includes(index) ? 'outline outline-1 outline-offset-2 outline-white/70' : ''}`}
             style={{ backgroundColor: color }}
             title={`Choose color ${index + 1}`}
+            aria-label={`Choose color ${index + 1}`}
+            onClick={() => setActiveColorIndex(activeColorIndex === index ? null : index)}
           >
-            <input
-              type="color"
-              value={color}
-              onChange={(event) => updateColor(index, event.target.value)}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              aria-label={`Choose color ${index + 1}`}
-            />
-          </label>
+          </button>
+          {activeColorIndex === index ? (
+            <ColorChipPanel color={color} index={index} updateColor={updateColor} close={() => setActiveColorIndex(null)} />
+          ) : null}
           {index >= PALETTE_BASE_COLOR_COUNT ? (
             <button
               type="button"
@@ -78,6 +92,70 @@ export function CanvasColorChips({
           <Plus size={12} strokeWidth={2} />
         </button>
       ))}
+    </div>
+  )
+}
+
+function normalizeHex(value: string) {
+  const compact = value.replace(/[^0-9a-f]/gi, '').slice(0, 6).toUpperCase()
+  return compact.length === 6 ? `#${compact}` : null
+}
+
+function ColorChipPanel({
+  color,
+  index,
+  updateColor,
+  close,
+}: {
+  color: string
+  index: number
+  updateColor: (index: number, value: string) => void
+  close: () => void
+}) {
+  const [draft, setDraft] = useState(color.replace('#', '').toUpperCase())
+
+  useEffect(() => {
+    setDraft(color.replace('#', '').toUpperCase())
+  }, [color])
+
+  const commit = (value: string) => {
+    const next = normalizeHex(value)
+    if (next) updateColor(index, next)
+  }
+
+  return (
+    <div className="absolute bottom-full left-0 z-[70] mb-2 w-[188px] rounded-[12px] border border-white/10 bg-[#151820]/95 p-2.5 text-[var(--pg-text)] shadow-[0_16px_42px_rgba(0,0,0,0.38)] backdrop-blur-md">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="h-7 w-7 shrink-0 rounded-[9px] border border-white/20 shadow-[0_6px_18px_rgba(0,0,0,0.32)]" style={{ backgroundColor: color }} />
+        <input
+          value={draft}
+          onChange={(event) => {
+            setDraft(event.target.value.toUpperCase())
+            commit(event.target.value)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') close()
+            if (event.key === 'Escape') close()
+          }}
+          className="h-8 min-w-0 flex-1 rounded-[8px] bg-white/[0.07] px-2 text-xs font-semibold uppercase tabular-nums outline-none transition-colors focus:bg-white/[0.10] focus:ring-1 focus:ring-white/15"
+          aria-label={`Hex color ${index + 1}`}
+        />
+      </div>
+      <div className="grid grid-cols-6 gap-1.5">
+        {QUICK_COLORS.map((swatch) => (
+          <button
+            key={swatch}
+            type="button"
+            onClick={() => {
+              updateColor(index, swatch)
+              close()
+            }}
+            className="h-5 w-5 rounded-full border border-white/25 shadow-[0_4px_10px_rgba(0,0,0,0.28)] outline-none transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-white"
+            style={{ backgroundColor: swatch }}
+            aria-label={`Set color ${swatch}`}
+          />
+        ))}
+      </div>
     </div>
   )
 }

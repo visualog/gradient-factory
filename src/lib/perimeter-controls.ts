@@ -14,6 +14,7 @@ const PERIMETER_CONTROLS = [
   { id: 'warp', width: 228 },
   { id: 'warpSize', width: 256 },
   { id: 'noise', width: 232 },
+  { id: 'vignette', width: 248 },
 ] as const
 
 export type PerimeterControlId = (typeof PERIMETER_CONTROLS)[number]['id']

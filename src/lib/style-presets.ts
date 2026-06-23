@@ -1,4 +1,14 @@
-export const GRADIENT_STYLES = ['Sharp Bézier', 'Soft Mesh', 'Linear Fold', 'Conic Bloom', 'Cellular Glow'] as const
+export const BASE_GRADIENT_STYLES = [
+  'Sharp Bézier', 'Soft Mesh', 'Linear Fold', 'Conic Bloom', 'Cellular Glow',
+] as const
+
+export const GRADIENT_STYLES = [
+  ...BASE_GRADIENT_STYLES,
+  'Inset Bloom', 'Neon Band', 'Radial Cushion', 'Aurora Twist',
+  'Flame Inset', 'Lime Violet Drift', 'Mint Dome', 'Cyan Ribbon',
+  'Violet Well', 'Solar Slash', 'Candy Wave', 'Lime Gate',
+  'Pop Horizon', 'Dusk Shelf', 'Blue Core', 'Rose Orbit',
+] as const
 
 export const WARP_SHAPES = ['Gravity', 'Wave', 'Radial', 'Spiral', 'Pinch', 'Ripple', 'Drift'] as const
 
@@ -11,6 +21,22 @@ export const GRADIENT_STYLE_LABELS: Record<GradientStyle, string> = {
   'Linear Fold': 'Product Backdrop',
   'Conic Bloom': 'Chrome Bloom',
   'Cellular Glow': 'Editorial Mesh',
+  'Inset Bloom': 'Inset Bloom',
+  'Neon Band': 'Neon Band',
+  'Radial Cushion': 'Radial Cushion',
+  'Aurora Twist': 'Aurora Twist',
+  'Flame Inset': 'Flame Inset',
+  'Lime Violet Drift': 'Lime Violet Drift',
+  'Mint Dome': 'Mint Dome',
+  'Cyan Ribbon': 'Cyan Ribbon',
+  'Violet Well': 'Violet Well',
+  'Solar Slash': 'Solar Slash',
+  'Candy Wave': 'Candy Wave',
+  'Lime Gate': 'Lime Gate',
+  'Pop Horizon': 'Pop Horizon',
+  'Dusk Shelf': 'Dusk Shelf',
+  'Blue Core': 'Blue Core',
+  'Rose Orbit': 'Rose Orbit',
 }
 
 export const WARP_SHAPE_LABELS: Record<WarpShape, string> = {

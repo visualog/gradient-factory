@@ -2,8 +2,9 @@
 
 import type { Dispatch, SetStateAction } from 'react'
 import { GRADIENT_STYLES, GRADIENT_STYLE_LABELS, WARP_SHAPES, WARP_SHAPE_LABELS, type GradientStyle, type WarpShape } from '@/lib/style-presets'
-import { NOISE_MAX } from '@/lib/gradient-model'
+import { NOISE_MAX, VIGNETTE_MAX } from '@/lib/gradient-model'
 import { SLIDER_LABEL_GAP, SLIDER_TRACK_LENGTH, perimeterControlStyle } from '@/lib/perimeter-controls'
+import { UI_GRADIENT_STYLES } from '@/lib/ui-gradient-presets'
 import { CornerSlider } from '@/components/gradient/corner-slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
@@ -11,7 +12,7 @@ import { Slider } from '@/components/ui/slider'
 type PerimeterControlsProps = {
   previewWidth: number
   style: GradientStyle
-  setStyle: Dispatch<SetStateAction<GradientStyle>>
+  setStyle: (value: GradientStyle) => void
   warpShape: WarpShape
   setWarpShape: Dispatch<SetStateAction<WarpShape>>
   warp: number
@@ -20,6 +21,9 @@ type PerimeterControlsProps = {
   setWarpSize: Dispatch<SetStateAction<number>>
   noise: number
   setNoise: Dispatch<SetStateAction<number>>
+  vignette: number
+  setVignette: Dispatch<SetStateAction<number>>
+  variant?: 'standard' | 'ui-glow'
 }
 
 export function PerimeterControls({
@@ -34,16 +38,25 @@ export function PerimeterControls({
   setWarpSize,
   noise,
   setNoise,
+  vignette,
+  setVignette,
+  variant = 'standard',
 }: PerimeterControlsProps) {
+  const isUiGlow = variant === 'ui-glow'
+  const styleOptions = isUiGlow ? UI_GRADIENT_STYLES : GRADIENT_STYLES
+  const warpLabel = isUiGlow ? 'Flow' : 'Warp'
+  const spreadLabel = isUiGlow ? 'Bloom' : 'Spread'
+  const noiseLabel = isUiGlow ? 'Grain' : 'Noise'
+
   return (
     <div className="pointer-events-none absolute inset-0 z-40 overflow-visible text-[var(--pg-text)]">
       <div className="pointer-events-auto absolute" style={perimeterControlStyle('style', previewWidth)}>
         <Select value={style} onValueChange={(value) => setStyle(value as GradientStyle)}>
-          <SelectTrigger className="h-9 w-full rounded-[12px] bg-white/[0.10] px-3 text-xs shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md">
+          <SelectTrigger aria-label={isUiGlow ? 'Reference style' : 'Gradient style'} className="h-9 w-full rounded-[12px] bg-white/[0.10] px-3 text-xs shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="max-h-36">
-            {GRADIENT_STYLES.map((option) => (
+            {styleOptions.map((option) => (
               <SelectItem key={option} value={option}>
                 {GRADIENT_STYLE_LABELS[option]}
               </SelectItem>
@@ -54,7 +67,7 @@ export function PerimeterControls({
 
       <div className="pointer-events-auto absolute" style={perimeterControlStyle('warpShape', previewWidth)}>
         <Select value={warpShape} onValueChange={(value) => setWarpShape(value as WarpShape)}>
-          <SelectTrigger className="h-9 w-full rounded-[12px] bg-white/[0.10] px-3 text-xs shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md">
+          <SelectTrigger aria-label={isUiGlow ? 'Reference motion' : 'Warp shape'} className="h-9 w-full rounded-[12px] bg-white/[0.10] px-3 text-xs shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="max-h-36">
@@ -68,7 +81,7 @@ export function PerimeterControls({
       </div>
 
       <ControlSlider
-        label="Warp"
+        label={warpLabel}
         style={perimeterControlStyle('warp', previewWidth)}
         value={warp}
         max={1.5}
@@ -77,7 +90,7 @@ export function PerimeterControls({
       />
       <CornerSlider
         controlId="warpSize"
-        label="Warp Size"
+        label={spreadLabel}
         previewWidth={previewWidth}
         value={warpSize}
         max={3}
@@ -86,13 +99,24 @@ export function PerimeterControls({
       />
       <CornerSlider
         controlId="noise"
-        label="Noise"
+        label={noiseLabel}
         previewWidth={previewWidth}
         value={noise}
         max={NOISE_MAX}
         step={0.001}
         onChange={setNoise}
       />
+      {isUiGlow ? (
+        <CornerSlider
+          controlId="vignette"
+          label="Vignette"
+          previewWidth={previewWidth}
+          value={vignette}
+          max={VIGNETTE_MAX}
+          step={0.01}
+          onChange={setVignette}
+        />
+      ) : null}
     </div>
   )
 }

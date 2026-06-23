@@ -1,15 +1,13 @@
 'use client'
 
 import { Lock, Shuffle, Sparkles, Unlock } from 'lucide-react'
-import type { CanvasSizePreset, ExperimentLock } from '@/hooks/use-gradient-experiment'
+import type { ExperimentLock } from '@/hooks/use-gradient-experiment'
 
 type ExperimentToolbarProps = {
   generateVariation: () => void
   shufflePalette: () => void
-  applyCanvasPreset: (presetIndex: number) => void
   experimentLocks: ExperimentLock[]
   toggleExperimentLock: (lock: ExperimentLock) => void
-  sizePresets: CanvasSizePreset[]
 }
 
 const EXPERIMENT_LOCKS: ExperimentLock[] = ['points', 'style', 'warp', 'noise']
@@ -23,10 +21,8 @@ const LOCK_LABELS: Record<ExperimentLock, string> = {
 export function ExperimentToolbar({
   generateVariation,
   shufflePalette,
-  applyCanvasPreset,
   experimentLocks,
   toggleExperimentLock,
-  sizePresets,
 }: ExperimentToolbarProps) {
   const buttonClass = 'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[12px] bg-transparent px-2.5 text-xs font-medium text-[var(--pg-text)] outline-none transition-colors hover:bg-black/[0.16] focus-visible:bg-black/[0.16] focus-visible:ring-1 focus-visible:ring-white/15 active:bg-black/[0.22]'
   const compactButtonClass = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-transparent text-xs font-semibold text-[var(--pg-text)] outline-none transition-colors hover:bg-black/[0.16] focus-visible:bg-black/[0.16] focus-visible:ring-1 focus-visible:ring-white/15 active:bg-black/[0.22]'
@@ -57,49 +53,6 @@ export function ExperimentToolbar({
           <span>{LOCK_LABELS[lock]}</span>
         </button>
       ))}
-      <SizePresetSelect presets={sizePresets} onChange={applyCanvasPreset} />
     </div>
-  )
-}
-
-function SizePresetSelect({
-  presets,
-  onChange,
-}: {
-  presets: CanvasSizePreset[]
-  onChange: (presetIndex: number) => void
-}) {
-  const platforms: CanvasSizePreset['platform'][] = ['Web', 'Mobile', 'Social']
-
-  return (
-    <label className="relative shrink-0">
-      <span className="sr-only">Canvas size preset</span>
-      <select
-        defaultValue=""
-        onChange={(event) => {
-          const index = Number(event.target.value)
-          if (Number.isNaN(index)) return
-          onChange(index)
-          event.currentTarget.value = ''
-        }}
-        className="h-8 w-[178px] rounded-[12px] border-0 bg-transparent px-2.5 text-xs font-medium text-[var(--pg-text)] outline-none transition-colors hover:bg-black/[0.16] focus:bg-black/[0.16] focus:ring-1 focus:ring-white/15"
-        title="Choose canvas size"
-      >
-        <option value="" disabled>
-          Size preset
-        </option>
-        {platforms.map((platform) => (
-          <optgroup key={platform} label={platform}>
-            {presets.map((preset, index) =>
-              preset.platform === platform ? (
-                <option key={`${preset.platform}-${preset.label}`} value={index}>
-                  {preset.label} - {preset.width} x {preset.height}
-                </option>
-              ) : null
-            )}
-          </optgroup>
-        ))}
-      </select>
-    </label>
   )
 }

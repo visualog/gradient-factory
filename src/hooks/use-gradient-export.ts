@@ -4,6 +4,17 @@ import { DEFAULT_POINT_POSITIONS, type GradientSnapshot } from '@/lib/gradient-m
 import { renderGradient } from '@/lib/gradient-renderer'
 import { cssGradientSnippet, encodeGradientState, tailwindGradientSnippet } from '@/lib/gradient-share'
 
+function maskCanvasCorners(canvas: HTMLCanvasElement, radius: number) {
+  if (radius <= 0) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.globalCompositeOperation = 'destination-in'
+  ctx.beginPath()
+  ctx.roundRect(0, 0, canvas.width, canvas.height, Math.min(radius, canvas.width / 2, canvas.height / 2))
+  ctx.fill()
+  ctx.globalCompositeOperation = 'source-over'
+}
+
 export function useGradientExport(captureGradient: () => GradientSnapshot | null) {
   const copyText = async (value: string) => {
     if (!navigator.clipboard) return
@@ -48,7 +59,9 @@ export function useGradientExport(captureGradient: () => GradientSnapshot | null
       warp: snapshot.warp,
       warpSize: snapshot.warpSize,
       noiseAmount: snapshot.noise,
+      vignetteAmount: snapshot.vignette,
     })
+    maskCanvasCorners(canvas, (snapshot.cornerRadius ?? 0) * scale)
 
     canvas.toBlob((blob) => {
       if (!blob) return

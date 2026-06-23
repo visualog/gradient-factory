@@ -3,16 +3,17 @@
 import type { Dispatch, PointerEvent, ReactNode, RefObject, SetStateAction } from 'react'
 import type { MotionValue } from 'motion/react'
 import type { GradientStyle, WarpShape } from '@/lib/style-presets'
-import { CANVAS_CORNER_RADIUS, CANVAS_MIN_HEIGHT, CANVAS_MIN_WIDTH, type GradientSnapshot, type PointPosition } from '@/lib/gradient-model'
+import type { GradientSnapshot, PointPosition } from '@/lib/gradient-model'
 import type { ResizeHandle } from '@/lib/resize-handles'
 import type { CanvasSizePreset, ExperimentLock } from '@/hooks/use-gradient-experiment'
 import { CanvasActions } from '@/components/gradient/canvas-actions'
 import { CanvasColorChips } from '@/components/gradient/canvas-color-chips'
+import { CanvasSizeControls } from '@/components/gradient/canvas-size-controls'
 import { ExperimentToolbar } from '@/components/gradient/experiment-toolbar'
 import { LibraryDock } from '@/components/gradient/library-dock'
 import { PerimeterControls } from '@/components/gradient/perimeter-controls'
 import { ResizeHandleButton } from '@/components/gradient/resize-handle-button'
-import { SizeInput } from '@/components/gradient/size-input'
+import { WarpFlowOverlay, type WarpFlowMode } from '@/components/gradient/warp-flow-overlay'
 
 type CanvasStageProps = {
   canvasAreaClass: string
@@ -20,6 +21,7 @@ type CanvasStageProps = {
   canvasRef: RefObject<HTMLCanvasElement>
   width: number
   height: number
+  canvasRadius: number
   setWidth: Dispatch<SetStateAction<number>>
   setHeight: Dispatch<SetStateAction<number>>
   saveToLibrary: () => void
@@ -34,12 +36,15 @@ type CanvasStageProps = {
   warpedPointPositions: PointPosition[]
   activePointIndex: number | null
   activeResizeHandle: string | null
+  activeResizeMode: 'resize' | 'radius-horizontal' | 'radius-vertical' | null
   showPointHandles: boolean
   showWarpPreview: boolean
+  activeWarpFlow: WarpFlowMode | null
+  controlVariant?: 'standard' | 'ui-glow'
   previewWidth: number
   controls: {
     style: GradientStyle
-    setStyle: Dispatch<SetStateAction<GradientStyle>>
+    setStyle: (value: GradientStyle) => void
     warpShape: WarpShape
     setWarpShape: Dispatch<SetStateAction<WarpShape>>
     warp: number
@@ -48,13 +53,15 @@ type CanvasStageProps = {
     setWarpSize: Dispatch<SetStateAction<number>>
     noise: number
     setNoise: Dispatch<SetStateAction<number>>
+    vignette: number
+    setVignette: Dispatch<SetStateAction<number>>
   }
   beginPointDrag: (index: number, event: PointerEvent<HTMLButtonElement>) => void
   movePointDrag: (index: number, event: PointerEvent<HTMLButtonElement>) => void
   endPointDrag: (event: PointerEvent<HTMLButtonElement>) => void
   updateCanvasHover: (event: PointerEvent<HTMLDivElement>) => void
   endCanvasHover: () => void
-  beginCanvasResize: (handle: ResizeHandle, event: PointerEvent<HTMLButtonElement>) => void
+  beginCanvasResize: (handle: ResizeHandle, mode: 'resize' | 'radius-horizontal' | 'radius-vertical', event: PointerEvent<HTMLButtonElement>) => void
   resizeCanvas: (event: PointerEvent<HTMLButtonElement>) => void
   endCanvasResize: (event: PointerEvent<HTMLButtonElement>) => void
   libraryDock: {
@@ -86,6 +93,7 @@ export function CanvasStage({
   canvasRef,
   width,
   height,
+  canvasRadius,
   setWidth,
   setHeight,
   saveToLibrary,
@@ -100,8 +108,11 @@ export function CanvasStage({
   warpedPointPositions,
   activePointIndex,
   activeResizeHandle,
+  activeResizeMode,
   showPointHandles,
   showWarpPreview,
+  activeWarpFlow,
+  controlVariant = 'standard',
   previewWidth,
   controls,
   beginPointDrag,
@@ -115,6 +126,9 @@ export function CanvasStage({
   libraryDock,
   experiment,
 }: CanvasStageProps) {
+  const isRadiusAdjusting = activeResizeMode === 'radius-horizontal' || activeResizeMode === 'radius-vertical'
+  const outerControlClass = isRadiusAdjusting ? 'opacity-20' : 'opacity-100'
+
   return (
     <section className={`relative z-10 col-start-1 row-start-1 flex min-h-0 w-full items-center justify-center rounded-[28px] lg:col-start-1 lg:row-start-1 ${canvasAreaClass}`}>
       <div
@@ -130,22 +144,28 @@ export function CanvasStage({
           style={{
             width: '100%',
             aspectRatio: `${width} / ${height}`,
-            borderRadius: CANVAS_CORNER_RADIUS,
+            borderRadius: canvasRadius,
             boxShadow: '0 20px 80px rgba(0,0,0,0.45)',
           }}
         />
-        {experiment?.enabled ? (
-          <ExperimentToolbar
-            generateVariation={experiment.generateVariation}
-            shufflePalette={experiment.shufflePalette}
-            applyCanvasPreset={experiment.applyCanvasPreset}
-            experimentLocks={experiment.experimentLocks}
-            toggleExperimentLock={experiment.toggleExperimentLock}
-            sizePresets={experiment.sizePresets}
-          />
-        ) : null}
-        <PerimeterControls previewWidth={previewWidth} {...controls} />
-        <CanvasBottomControls>
+        <div className={`transition-opacity duration-150 ${outerControlClass}`}>
+          {experiment?.enabled ? (
+            <ExperimentToolbar
+              generateVariation={experiment.generateVariation}
+              shufflePalette={experiment.shufflePalette}
+              experimentLocks={experiment.experimentLocks}
+              toggleExperimentLock={experiment.toggleExperimentLock}
+            />
+          ) : null}
+          <PerimeterControls previewWidth={previewWidth} variant={controlVariant} {...controls} />
+        </div>
+        <WarpFlowOverlay
+          colors={colors}
+          points={pointPositions}
+          mode={activeWarpFlow}
+          isVisible={activeWarpFlow === 'warpSize'}
+        />
+        <CanvasBottomControls className={outerControlClass}>
           <CanvasColorChips
             colors={colors}
             updateColor={updateColor}
@@ -155,10 +175,19 @@ export function CanvasStage({
             toggleColorLock={toggleColorLock}
             showLocks={Boolean(experiment?.enabled)}
           />
-          <CanvasSizeInputs width={width} height={height} setWidth={setWidth} setHeight={setHeight} />
+          <CanvasSizeControls
+            width={width}
+            height={height}
+            setWidth={setWidth}
+            setHeight={setHeight}
+            presets={experiment?.enabled ? experiment.sizePresets : undefined}
+            onPresetSelect={experiment?.applyCanvasPreset}
+          />
           <CanvasActions saveToLibrary={saveToLibrary} download={download} experiment={experiment} />
         </CanvasBottomControls>
-        <LibraryDock {...libraryDock} />
+        <div className={`transition-opacity duration-150 ${outerControlClass}`}>
+          <LibraryDock {...libraryDock} />
+        </div>
         <PointHandles
           colors={colors}
           pointPositions={pointPositions}
@@ -170,10 +199,12 @@ export function CanvasStage({
         <WarpPreview
           colors={colors}
           points={warpedPointPositions}
-          isVisible={showWarpPreview && activePointIndex === null}
+          isVisible={showWarpPreview && !showPointHandles}
         />
         <ResizeHandleButton
           activeResizeHandle={activeResizeHandle}
+          activeResizeMode={activeResizeMode}
+          radiusControlsEnabled={controlVariant === 'ui-glow'}
           beginCanvasResize={beginCanvasResize}
           resizeCanvas={resizeCanvas}
           endCanvasResize={endCanvasResize}
@@ -183,30 +214,8 @@ export function CanvasStage({
   )
 }
 
-function CanvasBottomControls({ children }: { children: ReactNode }) {
-  return <div className="pointer-events-none absolute left-0 top-full mt-3 flex max-w-full flex-wrap items-center gap-3">{children}</div>
-}
-
-function CanvasSizeInputs({
-  width,
-  height,
-  setWidth,
-  setHeight,
-}: {
-  width: number
-  height: number
-  setWidth: Dispatch<SetStateAction<number>>
-  setHeight: Dispatch<SetStateAction<number>>
-}) {
-  return (
-    <div
-      data-testid="canvas-size-inputs"
-      className="pointer-events-auto flex h-9 items-center gap-3 rounded-[12px] bg-white/[0.10] px-3 text-[var(--pg-text)] shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-md transition-colors hover:bg-black/[0.16] focus-within:bg-black/[0.16] focus-within:ring-1 focus-within:ring-white/15 active:bg-black/[0.22]"
-    >
-      <SizeInput label="W" min={CANVAS_MIN_WIDTH} value={width} onChange={setWidth} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-width-input" showStepper />
-      <SizeInput label="H" min={CANVAS_MIN_HEIGHT} value={height} onChange={setHeight} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-height-input" showStepper />
-    </div>
-  )
+function CanvasBottomControls({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={`pointer-events-none absolute left-0 top-full mt-3 flex max-w-full flex-wrap items-center gap-3 transition-opacity duration-150 ${className ?? ''}`}>{children}</div>
 }
 
 function PointHandles({

@@ -5,6 +5,8 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const Select = SelectPrimitive.Root
+const SelectGroup = SelectPrimitive.Group
+const SelectLabel = SelectPrimitive.Label
 const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = React.forwardRef<
@@ -35,7 +37,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        'z-50 min-w-[8rem] overflow-hidden rounded-md border border-[var(--pg-border,rgba(255,255,255,0.10))] bg-[var(--pg-panel,#11141c)] text-[var(--pg-text,#f5f7fb)] shadow-lg',
+        'z-50 min-w-[8rem] overflow-hidden rounded-[12px] border border-white/10 bg-[#151820]/95 text-[var(--pg-text,#f5f7fb)] shadow-[0_16px_42px_rgba(0,0,0,0.38)] backdrop-blur-md',
         position === 'popper' &&
           'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
         className
@@ -60,7 +62,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex h-8 cursor-default select-none items-center rounded-sm px-2 text-sm outline-none transition-colors focus:bg-white/10 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex h-8 cursor-default select-none items-center rounded-[8px] px-2 text-sm outline-none transition-colors focus:bg-white/10 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
     {...props}
@@ -70,4 +72,4 @@ const SelectItem = React.forwardRef<
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue }
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue }

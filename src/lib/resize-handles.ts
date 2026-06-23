@@ -1,4 +1,5 @@
 import { CANVAS_CORNER_RADIUS } from '@/lib/gradient-model'
+import type { CanvasRadiusHandleMode } from '@/lib/canvas-radius-controls'
 
 const RESIZE_HANDLE_EDGE_OFFSET = 18
 const RESIZE_HANDLE_CORNER_GAP = 8
@@ -30,10 +31,12 @@ export type ResizeHandle = (typeof RESIZE_HANDLES)[number]
 
 export type CanvasResizeState = {
   pointerId: number
+  mode: CanvasRadiusHandleMode
   startX: number
   startY: number
   startWidth: number
   startHeight: number
+  startRadius: number
   scaleX: number
   scaleY: number
   xAxis: ResizeHandle['xAxis']
@@ -56,14 +59,14 @@ export function resizeHandleBarClass(handle: ResizeHandle, activeResizeHandle: s
   const toneClass = activeResizeHandle === handle.id ? 'bg-white/85 border-white/40' : 'bg-white/50 border-white/20'
   const axisClass = handle.shape === 'horizontal' ? 'h-1.5 w-11' : 'h-11 w-1.5'
 
-  return `block rounded-full border shadow-[0_3px_12px_rgba(0,0,0,0.45)] backdrop-blur transition-[background-color,border-color,transform] duration-150 group-hover/resize:scale-110 group-hover/resize:bg-white/75 ${axisClass} ${toneClass}`
+  return `block rounded-full border shadow-[0_3px_12px_rgba(0,0,0,0.45)] backdrop-blur transition-[background-color,border-color] duration-150 group-hover/resize:bg-white/75 ${axisClass} ${toneClass}`
 }
 
 export function resizeHandleCornerClass(handleId: ResizeHandle['id'], activeResizeHandle: string | null) {
   const toneClass = activeResizeHandle === handleId ? 'text-white' : 'text-white group-hover/resize:text-white'
   const shadowClass = 'drop-shadow-[0_4px_10px_rgba(0,0,0,0.65)]'
 
-  return `absolute overflow-visible transition-[color,filter,transform] duration-150 group-hover/resize:scale-105 ${toneClass} ${shadowClass}`
+  return `absolute overflow-visible transition-[color,filter] duration-150 ${toneClass} ${shadowClass}`
 }
 
 export function resizeHandleCornerPath(handleId: ResizeHandle['id']) {

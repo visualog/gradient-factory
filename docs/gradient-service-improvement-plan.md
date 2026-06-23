@@ -84,7 +84,8 @@
 
 - `/?ab=control`: 기존 버전
 - `/?ab=lab`: 실험 버전
-- `/?ab=compare`: 두 개의 독립 iframe으로 기존안과 개선안을 나란히 비교
+- `/?ab=c-lab`: UI용 블러/글로우 그라디언트 실험 버전
+- `/?ab=compare`: 세 개의 독립 iframe으로 기존안, B Lab, C Lab을 나란히 비교
 
 B Lab에 반영된 항목:
 
@@ -100,9 +101,65 @@ B Lab에 반영된 항목:
 - 라이브러리 관리: 저장된 dock 항목 즐겨찾기, 이름 변경, 삭제
 - 저장 분리: `Generate`는 캔버스만 변경하고, 영구 저장은 저장 아이콘을 눌렀을 때만 실행
 
+C Lab에 반영된 항목:
+
+- C Lab 기본 URL: `/?ab=c-lab`
+- C Lab Compare 포함: `/?ab=compare`에서 `A Current`, `B Lab`, `C Lab` 3분할 비교
+- 목적: 첨부 레퍼런스처럼 편집 가능한 UI gradient resource 타일 스타일을 검증
+- 등록된 레퍼런스 스타일 12종: `Flame Inset`, `Lime Violet Drift`, `Mint Dome`, `Cyan Ribbon`, `Violet Well`, `Solar Slash`, `Candy Wave`, `Lime Gate`, `Pop Horizon`, `Dusk Shelf`, `Blue Core`, `Rose Orbit`
+- 첫 번째 Gradient Style 드롭다운에서 12종을 선택하면 색상, 컬러 포인트, 워프 형태, Warp, Spread, Noise가 함께 적용됨
+- `Generate`: C Lab에서는 12종 레퍼런스 스타일 중 하나를 통째로 적용
+- C Lab 최초 상태: 640 x 640, cyan/magenta/dark 기반 `Cyan Ribbon` 프리셋으로 시작
+- 렌더링 계약: 12종 스타일은 배경 이미지나 별도 픽셀 레이어가 아니라 공통 그라디언트 렌더러의 weight field로 생성되어야 하며, 컬러 포인트 핸들이 실제 색 덩어리와 밴드의 기준점이 되어야 함
+- `Vignette`: `Grain` 다음 외곽 컨트롤에서 코너/외곽 어두움 강도를 별도로 조절
+
 ## 다음 실험 후보
 
 1. 라이브러리 항목과 현재 캔버스 비교 UI 추가
 2. 자동 생성 히스토리를 다시 도입할 경우 저장 라이브러리와 완전히 분리된 session-only UI로 제공
 3. 유사색/보색 제안 또는 이미지에서 팔레트 추출 검토
 4. Figma 사용을 위한 export preset 추가
+
+## 추가 실험 후보: 캔버스와 렌더링 확장
+
+1. 캔버스 외관 모서리 조절
+
+   캔버스 자체의 corner radius를 직접 조절한다. 우하단 사이즈 조절 핸들을 확장해 가운데 영역은 현재처럼 캔버스 width/height를 조절하고, 핸들의 좌측 또는 우측 끝 영역은 radius 조절 모드로 전환한다.
+
+   - 핸들 가운데 hover: 현재와 같은 resize cursor와 resize 동작 유지
+   - 핸들 우측 끝 hover: radius 조절 cursor로 전환, 클릭 후 상하 드래그로 radius 증감
+   - 핸들 좌측 끝 hover: radius 조절 cursor로 전환, 클릭 후 좌우 드래그로 radius 증감
+   - radius 조절 중에는 캔버스 외곽의 다른 컨트롤 opacity를 낮추거나 숨겨서 조작 대상이 명확하게 보이도록 처리
+   - radius 값은 공유 URL, 저장 라이브러리, export 결과에 포함하는 방향 검토
+
+2. 그라디언트 형태 다양화
+
+   현재의 soft blob/field 중심 표현에 더해 UI asset으로 쓰기 좋은 구조적 모양을 추가한다.
+
+   - Sparkle 또는 glint highlight
+   - Hexagon 기반 glow field
+   - Star 또는 burst 형태
+   - diagonal ribbon, orbit, dome 같은 기존 C Lab 표현과 함께 style preset으로 노출
+
+3. 마스크 기반 특수 효과
+
+   그라디언트 위에 별도 마스크 레이어를 추가해 결과를 더 강하게 변형한다. 마스크는 색상 자체보다 알파, 밝기, blur, vignette, pattern을 제어하는 보조 레이어로 다룬다.
+
+   - radial mask
+   - stripe 또는 band mask
+   - noise/grain mask
+   - shape mask
+   - export 시 마스크 효과가 PNG와 CSS/Tailwind fallback에 어떻게 반영되는지 별도 정의 필요
+
+4. 부드러움과 단계감 조절
+
+   같은 그라디언트라도 아주 부드러운 blur field와 계단식 posterized field 사이를 조절할 수 있게 한다.
+
+   - Smooth: 색 전환을 더 부드럽게 보간
+   - Steps: 색상 단계가 보이는 posterize/quantize 표현
+   - Blend: 두 상태 사이를 연속적으로 조절
+   - C Lab에서는 `Grain`, `Vignette` 근처의 외곽 컨트롤 후보로 검토
+
+5. Fluid gradient 계열
+
+   정적인 field를 넘어 흐르는 액체감의 gradient preset을 추가한다. 초기 구현은 실제 시뮬레이션보다 포인트 기반 flow field와 ribbon distortion으로 시작하고, 필요할 때 canvas animation 또는 export 가능한 frame/snapshot 전략을 검토한다.

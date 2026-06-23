@@ -1,17 +1,20 @@
 'use client'
 
 import { useState, type Dispatch, type SetStateAction } from 'react'
-import { GRADIENT_STYLES, WARP_SHAPES, type GradientStyle, type WarpShape } from '@/lib/style-presets'
+import { BASE_GRADIENT_STYLES, WARP_SHAPES, type GradientStyle, type WarpShape } from '@/lib/style-presets'
 import {
   CANVAS_MAX_SIZE,
   CANVAS_MIN_HEIGHT,
   CANVAS_MIN_WIDTH,
   DEFAULT_POINT_POSITIONS,
+  DEFAULT_VIGNETTE,
   clamp,
   type PointPosition,
 } from '@/lib/gradient-model'
+import { UI_GRADIENT_PRESETS } from '@/lib/ui-gradient-presets'
 
 export type ExperimentLock = 'points' | 'style' | 'warp' | 'noise'
+export type ExperimentProfile = 'standard' | 'ui-glow'
 export type CanvasSizePreset = {
   platform: 'Web' | 'Mobile' | 'Social'
   label: string
@@ -60,10 +63,12 @@ export function useGradientExperiment({
   setWarp,
   setWarpSize,
   setNoise,
+  setVignette,
   lockedColorIndexes,
   setWidth,
   setHeight,
   onGenerated,
+  profile = 'standard',
 }: {
   colors: string[]
   setColors: Dispatch<SetStateAction<string[]>>
@@ -73,28 +78,35 @@ export function useGradientExperiment({
   setWarp: Dispatch<SetStateAction<number>>
   setWarpSize: Dispatch<SetStateAction<number>>
   setNoise: Dispatch<SetStateAction<number>>
+  setVignette: Dispatch<SetStateAction<number>>
   lockedColorIndexes: number[]
   setWidth: Dispatch<SetStateAction<number>>
   setHeight: Dispatch<SetStateAction<number>>
   onGenerated: () => void
+  profile?: ExperimentProfile
 }) {
   const [experimentLocks, setExperimentLocks] = useState<ExperimentLock[]>([])
 
   const generateVariation = () => {
-    const palette = randomItem(LAB_PALETTES)
+    const isUiGlow = profile === 'ui-glow'
+    const uiPreset = isUiGlow ? randomItem(UI_GRADIENT_PRESETS) : null
+    const palette = uiPreset?.colors ?? randomItem(LAB_PALETTES)
     const nextColors = colors.map((color, index) =>
       lockedColorIndexes.includes(index) ? color : palette[index % palette.length]
     )
 
     setColors(nextColors)
-    if (!experimentLocks.includes('points')) setPointPositions(nextColors.map((_, index) => randomPoint(index)))
-    if (!experimentLocks.includes('style')) setStyle(randomItem(GRADIENT_STYLES))
+    if (!experimentLocks.includes('points')) setPointPositions(uiPreset?.pointPositions?.map((point) => ({ ...point })) ?? nextColors.map((_, index) => randomPoint(index)))
+    if (!experimentLocks.includes('style')) setStyle(uiPreset?.style ?? randomItem(BASE_GRADIENT_STYLES))
     if (!experimentLocks.includes('warp')) {
-      setWarpShape(randomItem(WARP_SHAPES))
-      setWarp(Number((0.18 + Math.random() * 0.92).toFixed(2)))
-      setWarpSize(Number((0.65 + Math.random() * 1.65).toFixed(2)))
+      setWarpShape(uiPreset?.warpShape ?? randomItem(WARP_SHAPES))
+      setWarp(uiPreset?.warp ?? Number((0.18 + Math.random() * 0.92).toFixed(2)))
+      setWarpSize(uiPreset?.warpSize ?? Number((0.65 + Math.random() * 1.65).toFixed(2)))
     }
-    if (!experimentLocks.includes('noise')) setNoise(Number((0.025 + Math.random() * 0.105).toFixed(3)))
+    if (!experimentLocks.includes('noise')) {
+      setNoise(uiPreset?.noise ?? Number((0.025 + Math.random() * 0.105).toFixed(3)))
+      setVignette(uiPreset?.vignette ?? DEFAULT_VIGNETTE)
+    }
     onGenerated()
   }
 
