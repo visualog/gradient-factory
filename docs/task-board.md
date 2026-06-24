@@ -100,3 +100,11 @@
 | T096 | 완료 | C Lab A 기본 스타일과 Coolors 팔레트 추가 | `Sharp Bézier`, `Soft Mesh`, `Linear Fold`, `Conic Bloom`, `Cellular Glow`를 C Lab 스타일에 추가하고 Coolors popular gradient 페이지에서 확인한 상위 팔레트 색상으로 프리셋을 구성함 |
 | T097 | 완료 | 캔버스 외곽 바 높이 통일 | 상단 외곽 컨트롤과 하단 컬러칩/사이즈/액션 바가 공통 36px 높이 토큰과 surface class를 사용함 |
 | T098 | 완료 | C Lab Steps 슬라이더 방향 반전 | 내부 단계 값은 유지하고 UI 슬라이더만 반전해 기본 smooth 상태가 오른쪽 최고값에 놓이도록 함 |
+| T099 | 완료 | C Lab Generate 툴바 높이 통일 | Generate/Shuffle/Lock 툴바가 외곽 컨트롤과 같은 공통 36px surface class를 사용함 |
+| T100 | 완료 | C Lab Mask/Steps 상단 툴바 이동 | `Mask`와 `Steps`를 우측 레일에서 제거하고 Generate/Shuffle/Lock 바 다음의 상단 row에 36px 높이로 배치함 |
+| T101 | 완료 | C Lab Steps 코너 path 1차 복구 | `Steps`를 `Bloom`과 같은 우상단 코너 path에 올리는 1차 시도를 완료했으나 T102에서 상단 row 정렬로 대체함 |
+| T102 | 완료 | C Lab Steps 상단 row 코너 정렬 | `Steps`를 상단 row에 고정하고 `Mask`/`Bloom`과 8px gap, `Bloom` 오른쪽 코너 끝 정렬을 맞춤 |
+| T103 | 완료 | 컬러 칩 swatch 선택 보정 | 컬러 패널 quick swatch의 `pointerdown` 닫기 경로에서 색상을 먼저 적용하고 색상 변경 시 칩 slot DOM이 교체되지 않도록 key를 고정함 |
+| T104 | 완료 | 플로팅 메뉴 z-index 보정 | 컬러 팔레트 패널과 Export 메뉴를 컬러 핸들보다 높은 `z-[90]` 레이어로 올려 클릭 충돌을 방지함 |
+| T105 | 완료 | 하단 컨트롤 레이어 z-index 보정 | 하단 컨트롤 부모를 `z-[80]`, 컬러 핸들 레이어를 `z-[30]`으로 분리해 메뉴/팔레트가 핸들보다 위에 오도록 함 |
+| T106 | 완료 | C Lab Steps 코너 슬라이더 보정 | `Steps`를 전용 SVG 슬라이더로 교체해 오른쪽 track/surface가 코너 방향으로 휘도록 함 |

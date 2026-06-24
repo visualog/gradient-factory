@@ -2,8 +2,6 @@
 
 import type { Dispatch, SetStateAction } from 'react'
 import { GRADIENT_STYLES, GRADIENT_STYLE_LABELS, WARP_SHAPES, WARP_SHAPE_LABELS, type GradientStyle, type WarpShape } from '@/lib/style-presets'
-import { GRADIENT_MASK_EFFECTS, GRADIENT_MASK_LABELS, type GradientMaskEffect } from '@/lib/gradient-mask-effects'
-import { GRADIENT_STEPS_MAX, stepAmountFromSliderValue, stepSliderValueFromAmount } from '@/lib/gradient-step-blend'
 import { NOISE_MAX, VIGNETTE_MAX } from '@/lib/gradient-model'
 import { CONTROL_INTERACTIVE_SURFACE_CLASS, CONTROL_SURFACE_CLASS, SLIDER_LABEL_GAP, SLIDER_TRACK_LENGTH, perimeterControlStyle } from '@/lib/perimeter-controls'
 import { UI_GRADIENT_STYLES } from '@/lib/ui-gradient-presets'
@@ -25,10 +23,6 @@ type PerimeterControlsProps = {
   setNoise: Dispatch<SetStateAction<number>>
   vignette: number
   setVignette: Dispatch<SetStateAction<number>>
-  mask: GradientMaskEffect
-  setMask: Dispatch<SetStateAction<GradientMaskEffect>>
-  steps: number
-  setSteps: Dispatch<SetStateAction<number>>
   variant?: 'standard' | 'ui-glow'
 }
 
@@ -46,10 +40,6 @@ export function PerimeterControls({
   setNoise,
   vignette,
   setVignette,
-  mask,
-  setMask,
-  steps,
-  setSteps,
   variant = 'standard',
 }: PerimeterControlsProps) {
   const isUiGlow = variant === 'ui-glow'
@@ -126,29 +116,6 @@ export function PerimeterControls({
             max={VIGNETTE_MAX}
             step={0.01}
             onChange={setVignette}
-          />
-          <div className="pointer-events-auto absolute" style={perimeterControlStyle('mask', previewWidth)}>
-            <Select value={mask} onValueChange={(value) => setMask(value as GradientMaskEffect)}>
-              <SelectTrigger aria-label="Mask effect" className={`${CONTROL_SURFACE_CLASS} w-full px-3 text-xs`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-36">
-                {GRADIENT_MASK_EFFECTS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {GRADIENT_MASK_LABELS[option]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <CornerSlider
-            controlId="steps"
-            label="Steps"
-            previewWidth={previewWidth}
-            value={stepSliderValueFromAmount(steps)}
-            max={GRADIENT_STEPS_MAX}
-            step={1}
-            onChange={(value) => setSteps(stepAmountFromSliderValue(value))}
           />
         </>
       ) : null}

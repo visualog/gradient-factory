@@ -160,6 +160,10 @@ export function CanvasStage({
               shufflePalette={experiment.shufflePalette}
               experimentLocks={experiment.experimentLocks}
               toggleExperimentLock={experiment.toggleExperimentLock}
+              mask={controls.mask}
+              setMask={controls.setMask}
+              steps={controls.steps}
+              setSteps={controls.setSteps}
             />
           ) : null}
           <PerimeterControls previewWidth={previewWidth} variant={controlVariant} {...controls} />
@@ -220,7 +224,7 @@ export function CanvasStage({
 }
 
 function CanvasBottomControls({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={`pointer-events-none absolute left-0 top-full mt-3 flex max-w-full flex-wrap items-center gap-3 transition-opacity duration-150 ${className ?? ''}`}>{children}</div>
+  return <div className={`pointer-events-none absolute left-0 top-full z-[80] mt-3 flex max-w-full flex-wrap items-center gap-3 transition-opacity duration-150 ${className ?? ''}`}>{children}</div>
 }
 
 function PointHandles({
@@ -239,7 +243,7 @@ function PointHandles({
   endPointDrag: (event: PointerEvent<HTMLButtonElement>) => void
 }) {
   return (
-    <div className={`absolute inset-0 rounded-[24px] transition-opacity ${showPointHandles ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
+    <div className={`absolute inset-0 z-[30] rounded-[24px] transition-opacity ${showPointHandles ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
       {pointPositions.map((point, index) => (
         <button
           key={index}

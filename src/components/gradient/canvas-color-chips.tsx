@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { Lock, Plus, Unlock, X } from 'lucide-react'
 import { PALETTE_BASE_COLOR_COUNT, PALETTE_MAX_COLOR_COUNT } from '@/lib/gradient-model'
 import { CONTROL_SURFACE_CLASS } from '@/lib/perimeter-controls'
@@ -31,11 +32,18 @@ export function CanvasColorChips({
   useEffect(() => {
     if (activeColorIndex === null) return
     const close = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null
+      const swatch = target?.closest<HTMLButtonElement>('[data-swatch]')?.dataset.swatch
+      if (swatch) {
+        updateColor(activeColorIndex, swatch)
+        setActiveColorIndex(null)
+        return
+      }
       if (!pickerRef.current?.contains(event.target as Node)) setActiveColorIndex(null)
     }
     window.addEventListener('pointerdown', close)
     return () => window.removeEventListener('pointerdown', close)
-  }, [activeColorIndex])
+  }, [activeColorIndex, updateColor])
 
   return (
     <div
@@ -44,7 +52,7 @@ export function CanvasColorChips({
       className={`pointer-events-auto flex items-center gap-2 px-3 ${CONTROL_SURFACE_CLASS}`}
     >
       {colors.map((color, index) => (
-        <span key={`${color}-${index}`} className="group/palette-chip relative block h-5 w-5 shrink-0">
+        <span key={`palette-color-${index}`} className="group/palette-chip relative block h-5 w-5 shrink-0">
           {showLocks ? (
             <button
               type="button"
@@ -124,8 +132,21 @@ function ColorChipPanel({
     if (next) updateColor(index, next)
   }
 
+  const selectQuickColor = (swatch: string) => {
+    updateColor(index, swatch)
+    window.setTimeout(close, 0)
+  }
+
+  const selectQuickColorFromEvent = (event: ReactMouseEvent<HTMLDivElement> | ReactPointerEvent<HTMLDivElement>) => {
+    const swatch = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-swatch]')?.dataset.swatch
+    if (!swatch) return
+    event.preventDefault()
+    event.stopPropagation()
+    selectQuickColor(swatch)
+  }
+
   return (
-    <div className="absolute bottom-full left-0 z-[70] mb-2 w-[188px] rounded-[12px] border border-white/10 bg-[#151820]/95 p-2.5 text-[var(--pg-text)] shadow-[0_16px_42px_rgba(0,0,0,0.38)] backdrop-blur-md">
+    <div className="absolute bottom-full left-0 z-[90] mb-2 w-[188px] rounded-[12px] border border-white/10 bg-[#151820]/95 p-2.5 text-[var(--pg-text)] shadow-[0_16px_42px_rgba(0,0,0,0.38)] backdrop-blur-md">
       <div className="mb-2 flex items-center gap-2">
         <span className="h-7 w-7 shrink-0 rounded-[9px] border border-white/20 shadow-[0_6px_18px_rgba(0,0,0,0.32)]" style={{ backgroundColor: color }} />
         <input
@@ -142,14 +163,18 @@ function ColorChipPanel({
           aria-label={`Hex color ${index + 1}`}
         />
       </div>
-      <div className="grid grid-cols-6 gap-1.5">
+      <div
+        className="grid grid-cols-6 gap-1.5"
+        onPointerDownCapture={selectQuickColorFromEvent}
+        onMouseDownCapture={selectQuickColorFromEvent}
+      >
         {QUICK_COLORS.map((swatch) => (
           <button
             key={swatch}
             type="button"
+            data-swatch={swatch}
             onClick={() => {
-              updateColor(index, swatch)
-              close()
+              selectQuickColor(swatch)
             }}
             className="h-5 w-5 rounded-full border border-white/25 shadow-[0_4px_10px_rgba(0,0,0,0.28)] outline-none transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-white"
             style={{ backgroundColor: swatch }}

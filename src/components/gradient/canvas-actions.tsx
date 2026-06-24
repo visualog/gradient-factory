@@ -54,7 +54,7 @@ export function CanvasActions({
         <Download size={16} strokeWidth={1.8} />
       </Button>
       {exportActions && isExportOpen ? (
-        <div className="absolute bottom-full right-0 mb-2 w-52 rounded-[14px] border border-white/10 bg-[var(--pg-panel)] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div className="absolute bottom-full right-0 z-[90] mb-2 w-52 rounded-[14px] border border-white/10 bg-[var(--pg-panel)] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.35)] backdrop-blur-md">
           <button type="button" className={menuItemClass} onClick={() => runExportAction(() => exportActions.downloadScale(1))}>
             <FileImage size={14} strokeWidth={1.9} />
             <span>PNG 1x</span>
