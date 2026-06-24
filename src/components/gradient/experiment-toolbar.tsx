@@ -27,12 +27,16 @@ const LOCK_LABELS: Record<ExperimentLock, string> = {
   noise: 'N',
 }
 const STEP_TRACK_START = { x: 70, y: 18 }
-const STEP_TRACK_CURVE_START = { x: 176, y: 18 }
-const STEP_TRACK_CURVE_END = { x: 206, y: 31 }
-const STEP_TRACK_CONTROL_1 = { x: 190, y: 18 }
-const STEP_TRACK_CONTROL_2 = { x: 205, y: 20 }
+const STEP_TRACK_CURVE_START = { x: 154, y: 18 }
+const STEP_TRACK_ARC_RADIUS = 104
+const STEP_TRACK_ARC_END_ANGLE = Math.asin(56 / STEP_TRACK_ARC_RADIUS)
+const STEP_TRACK_CURVE_END = {
+  x: STEP_TRACK_CURVE_START.x + STEP_TRACK_ARC_RADIUS * Math.sin(STEP_TRACK_ARC_END_ANGLE),
+  y: STEP_TRACK_CURVE_START.y + STEP_TRACK_ARC_RADIUS * (1 - Math.cos(STEP_TRACK_ARC_END_ANGLE)),
+}
+const STEP_SURFACE_PATH = 'M 12 0 H 154 A 112 112 0 0 1 222 26 V 42 H 210 A 12 12 0 0 1 198 30 V 36 H 12 A 12 12 0 0 1 0 24 V 12 A 12 12 0 0 1 12 0 Z'
 const STEP_TRACK_STRAIGHT_LENGTH = STEP_TRACK_CURVE_START.x - STEP_TRACK_START.x
-const STEP_TRACK_CURVE_LENGTH = 34
+const STEP_TRACK_CURVE_LENGTH = STEP_TRACK_ARC_RADIUS * STEP_TRACK_ARC_END_ANGLE
 const STEP_TRACK_TOTAL_LENGTH = STEP_TRACK_STRAIGHT_LENGTH + STEP_TRACK_CURVE_LENGTH
 const STEP_TRACK_STRAIGHT_RATIO = STEP_TRACK_STRAIGHT_LENGTH / STEP_TRACK_TOTAL_LENGTH
 
@@ -52,7 +56,7 @@ export function ExperimentToolbar({
     `${compactButtonClass} ${experimentLocks.includes(lock) ? 'bg-[var(--pg-text)] text-[var(--pg-bg)] hover:bg-[var(--pg-text)]' : ''}`
 
   return (
-    <div className="pointer-events-auto absolute bottom-full left-0 z-[80] mb-14 flex max-w-full flex-nowrap items-center gap-2 text-[var(--pg-text)]">
+    <div className="pointer-events-auto absolute bottom-full left-0 z-[80] mb-14 flex max-w-full flex-nowrap items-center gap-1.5 text-[var(--pg-text)]">
       <div className={`flex flex-nowrap items-center gap-1 px-1.5 ${CONTROL_SURFACE_CLASS}`}>
         <button type="button" onClick={generateVariation} className={buttonClass} title="Generate a new variation">
           <Sparkles size={14} strokeWidth={1.9} />
@@ -96,27 +100,12 @@ export function ExperimentToolbar({
   )
 }
 
-function cubicPoint(t: number) {
-  const mt = 1 - t
+function arcPoint(t: number) {
+  const angle = STEP_TRACK_ARC_END_ANGLE * t
   return {
-    x: mt ** 3 * STEP_TRACK_CURVE_START.x + 3 * mt ** 2 * t * STEP_TRACK_CONTROL_1.x + 3 * mt * t ** 2 * STEP_TRACK_CONTROL_2.x + t ** 3 * STEP_TRACK_CURVE_END.x,
-    y: mt ** 3 * STEP_TRACK_CURVE_START.y + 3 * mt ** 2 * t * STEP_TRACK_CONTROL_1.y + 3 * mt * t ** 2 * STEP_TRACK_CONTROL_2.y + t ** 3 * STEP_TRACK_CURVE_END.y,
+    x: STEP_TRACK_CURVE_START.x + STEP_TRACK_ARC_RADIUS * Math.sin(angle),
+    y: STEP_TRACK_CURVE_START.y + STEP_TRACK_ARC_RADIUS * (1 - Math.cos(angle)),
   }
-}
-
-function splitCubic(t: number) {
-  const p01 = lerpPoint(STEP_TRACK_CURVE_START, STEP_TRACK_CONTROL_1, t)
-  const p12 = lerpPoint(STEP_TRACK_CONTROL_1, STEP_TRACK_CONTROL_2, t)
-  const p23 = lerpPoint(STEP_TRACK_CONTROL_2, STEP_TRACK_CURVE_END, t)
-  const p012 = lerpPoint(p01, p12, t)
-  const p123 = lerpPoint(p12, p23, t)
-  const p0123 = lerpPoint(p012, p123, t)
-
-  return { c1: p01, c2: p012, end: p0123 }
-}
-
-function lerpPoint(a: { x: number; y: number }, b: { x: number; y: number }, t: number) {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }
 }
 
 function stepsPoint(progress: number) {
@@ -125,7 +114,7 @@ function stepsPoint(progress: number) {
     return { x: STEP_TRACK_START.x + STEP_TRACK_STRAIGHT_LENGTH * t, y: STEP_TRACK_START.y }
   }
 
-  return cubicPoint((progress - STEP_TRACK_STRAIGHT_RATIO) / (1 - STEP_TRACK_STRAIGHT_RATIO))
+  return arcPoint((progress - STEP_TRACK_STRAIGHT_RATIO) / (1 - STEP_TRACK_STRAIGHT_RATIO))
 }
 
 function stepsProgressPath(progress: number) {
@@ -135,10 +124,9 @@ function stepsProgressPath(progress: number) {
     return `M ${STEP_TRACK_START.x} ${STEP_TRACK_START.y} L ${point.x} ${point.y}`
   }
 
-  const t = (progress - STEP_TRACK_STRAIGHT_RATIO) / (1 - STEP_TRACK_STRAIGHT_RATIO)
-  const split = splitCubic(t)
+  const point = arcPoint((progress - STEP_TRACK_STRAIGHT_RATIO) / (1 - STEP_TRACK_STRAIGHT_RATIO))
 
-  return `M ${STEP_TRACK_START.x} ${STEP_TRACK_START.y} L ${STEP_TRACK_CURVE_START.x} ${STEP_TRACK_CURVE_START.y} C ${split.c1.x} ${split.c1.y} ${split.c2.x} ${split.c2.y} ${split.end.x} ${split.end.y}`
+  return `M ${STEP_TRACK_START.x} ${STEP_TRACK_START.y} L ${STEP_TRACK_CURVE_START.x} ${STEP_TRACK_CURVE_START.y} A ${STEP_TRACK_ARC_RADIUS} ${STEP_TRACK_ARC_RADIUS} 0 0 1 ${point.x} ${point.y}`
 }
 
 function valueFromStepsPointer(event: PointerEvent<SVGSVGElement>) {
@@ -150,9 +138,8 @@ function valueFromStepsPointer(event: PointerEvent<SVGSVGElement>) {
 
   if (x <= curveStartX) return Math.round(straightProgress * STEP_TRACK_STRAIGHT_RATIO * GRADIENT_STEPS_MAX)
 
-  const curveProgressX = (x - curveStartX) / (STEP_TRACK_CURVE_END.x - curveStartX)
-  const curveProgressY = (y - STEP_TRACK_CURVE_START.y) / (STEP_TRACK_CURVE_END.y - STEP_TRACK_CURVE_START.y)
-  const curveProgress = Math.max(0, Math.min(1, Math.max(curveProgressX, curveProgressY)))
+  const angle = Math.atan2(x - curveStartX, STEP_TRACK_ARC_RADIUS - (y - STEP_TRACK_CURVE_START.y))
+  const curveProgress = Math.max(0, Math.min(1, angle / STEP_TRACK_ARC_END_ANGLE))
   const progress = STEP_TRACK_STRAIGHT_RATIO + curveProgress * (1 - STEP_TRACK_STRAIGHT_RATIO)
 
   return Math.round(Math.max(0, Math.min(1, progress)) * GRADIENT_STEPS_MAX)
@@ -169,7 +156,7 @@ function StepsCornerSlider({
   const progress = sliderValue / GRADIENT_STEPS_MAX
   const thumb = stepsPoint(progress)
   const progressPath = stepsProgressPath(progress)
-  const trackPath = `M ${STEP_TRACK_START.x} ${STEP_TRACK_START.y} L ${STEP_TRACK_CURVE_START.x} ${STEP_TRACK_CURVE_START.y} C ${STEP_TRACK_CONTROL_1.x} ${STEP_TRACK_CONTROL_1.y} ${STEP_TRACK_CONTROL_2.x} ${STEP_TRACK_CONTROL_2.y} ${STEP_TRACK_CURVE_END.x} ${STEP_TRACK_CURVE_END.y}`
+  const trackPath = `M ${STEP_TRACK_START.x} ${STEP_TRACK_START.y} L ${STEP_TRACK_CURVE_START.x} ${STEP_TRACK_CURVE_START.y} A ${STEP_TRACK_ARC_RADIUS} ${STEP_TRACK_ARC_RADIUS} 0 0 1 ${STEP_TRACK_CURVE_END.x} ${STEP_TRACK_CURVE_END.y}`
 
   const update = (event: PointerEvent<SVGSVGElement>) => {
     event.preventDefault()
@@ -182,8 +169,8 @@ function StepsCornerSlider({
 
   return (
     <svg
-      className="group/steps-slider h-9 w-[222px] shrink-0 touch-none overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
-      viewBox="0 0 222 40"
+      className="group/steps-slider h-[48px] w-[236px] shrink-0 self-start touch-none overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+      viewBox="0 0 236 48"
       aria-label="Steps"
       role="slider"
       aria-valuemin={0}
@@ -200,7 +187,7 @@ function StepsCornerSlider({
       onPointerCancel={release}
     >
       <path
-        d="M 12 0 H 181 C 205 0 222 16 222 40 H 12 A 12 12 0 0 1 0 28 V 12 A 12 12 0 0 1 12 0 Z"
+        d={STEP_SURFACE_PATH}
         className="cursor-pointer fill-white/[0.10] transition-colors group-hover/steps-slider:fill-white/[0.06] group-active/steps-slider:fill-white/[0.08]"
       />
       <text x="12" y="22" className="pointer-events-none fill-current text-[11px] font-medium opacity-80">Steps</text>

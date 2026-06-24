@@ -108,3 +108,7 @@
 | T104 | 완료 | 플로팅 메뉴 z-index 보정 | 컬러 팔레트 패널과 Export 메뉴를 컬러 핸들보다 높은 `z-[90]` 레이어로 올려 클릭 충돌을 방지함 |
 | T105 | 완료 | 하단 컨트롤 레이어 z-index 보정 | 하단 컨트롤 부모를 `z-[80]`, 컬러 핸들 레이어를 `z-[30]`으로 분리해 메뉴/팔레트가 핸들보다 위에 오도록 함 |
 | T106 | 완료 | C Lab Steps 코너 슬라이더 보정 | `Steps`를 전용 SVG 슬라이더로 교체해 오른쪽 track/surface가 코너 방향으로 휘도록 함 |
+| T107 | 완료 | C Lab Steps 2단 코너 곡률 보정 | `Steps` surface/track을 36px 높이 안에 맞추고 1단 외곽 컨트롤의 넓은 코너 곡률을 따르도록 완화함 |
+| T108 | 완료 | C Lab Steps cubic 원인 보정 | 수동 cubic curve가 `Bloom` perimeter arc와 다른 곡률을 만들던 원인을 확인하고 `Steps` track/surface를 `A` arc 기반으로 교체함 |
+| T109 | 완료 | C Lab Steps SVG bounds 보정 | `Steps` viewBox/height를 48px로 키워 surface와 thumb가 자체 SVG bounds 안에 들어오도록 함 |
+| T110 | 완료 | C Lab Steps 우측 bounds 보정 | `Steps` viewBox/width를 236px로 키워 오른쪽 surface와 thumb에 잘림 방지 여백을 확보함 |
