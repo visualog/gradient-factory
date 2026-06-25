@@ -78,3 +78,38 @@ input[type='range'] {
 .library-dock-scroll::-webkit-scrollbar {
   display: none;
 }
+
+.pg-select-viewport {
+  scrollbar-color: rgba(255,255,255,0.24) transparent;
+  scrollbar-width: thin;
+}
+
+.pg-select-viewport::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.pg-select-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pg-select-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.22);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+}
+
+.pg-select-content:hover .pg-select-viewport {
+  scrollbar-color: rgba(255,255,255,0.54) transparent;
+}
+
+.pg-select-content:hover .pg-select-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.54);
+  background-clip: content-box;
+}
+
+.pg-select-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.78);
+  background-clip: content-box;
+}

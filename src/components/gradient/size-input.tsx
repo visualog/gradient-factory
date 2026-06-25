@@ -69,10 +69,10 @@ export function SizeInput({ label, min, value, onChange, className = '', inputCl
         />
         {showStepper ? (
           <span className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col overflow-hidden rounded-[4px] text-white/75">
-            <button type="button" tabIndex={-1} className="flex h-3.5 w-4 items-center justify-center hover:text-white" aria-label={`Increase ${label}`} onClick={() => stepBy(1)}>
+            <button type="button" tabIndex={-1} className="flex h-3.5 w-4 items-center justify-center hover:text-white" aria-label={`${label} 증가`} onClick={() => stepBy(1)}>
               <ChevronUp size={12} strokeWidth={2.4} />
             </button>
-            <button type="button" tabIndex={-1} className="flex h-3.5 w-4 items-center justify-center hover:text-white" aria-label={`Decrease ${label}`} onClick={() => stepBy(-1)}>
+            <button type="button" tabIndex={-1} className="flex h-3.5 w-4 items-center justify-center hover:text-white" aria-label={`${label} 감소`} onClick={() => stepBy(-1)}>
               <ChevronDown size={12} strokeWidth={2.4} />
             </button>
           </span>

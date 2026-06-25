@@ -5,10 +5,10 @@ export type GradientMaskEffect = (typeof GRADIENT_MASK_EFFECTS)[number]
 export const DEFAULT_GRADIENT_MASK: GradientMaskEffect = 'None'
 
 export const GRADIENT_MASK_LABELS: Record<GradientMaskEffect, string> = {
-  None: 'Mask Off',
-  RibbedGlass: 'Ribbed Glass',
-  PebbleGlass: 'Pebble Glass',
-  RippleGlass: 'Ripple Glass',
+  None: '마스크 끔',
+  RibbedGlass: '세로 유리',
+  PebbleGlass: '조약돌 유리',
+  RippleGlass: '물결 유리',
 }
 
 const clamp = (v: number, min = 0, max = 1) => Math.max(min, Math.min(max, v))

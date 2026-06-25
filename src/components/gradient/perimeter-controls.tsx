@@ -3,6 +3,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { GRADIENT_STYLES, GRADIENT_STYLE_LABELS, WARP_SHAPES, WARP_SHAPE_LABELS, type GradientStyle, type WarpShape } from '@/lib/style-presets'
 import { NOISE_MAX, VIGNETTE_MAX } from '@/lib/gradient-model'
+import { KO_GRADIENT_STYLE_LABELS, KO_WARP_SHAPE_LABELS } from '@/lib/control-labels'
 import { CONTROL_INTERACTIVE_SURFACE_CLASS, CONTROL_SURFACE_CLASS, SLIDER_LABEL_GAP, SLIDER_TRACK_LENGTH, perimeterControlStyle } from '@/lib/perimeter-controls'
 import { UI_GRADIENT_STYLES } from '@/lib/ui-gradient-presets'
 import { CornerSlider } from '@/components/gradient/corner-slider'
@@ -44,21 +45,23 @@ export function PerimeterControls({
 }: PerimeterControlsProps) {
   const isUiGlow = variant === 'ui-glow'
   const styleOptions = isUiGlow ? UI_GRADIENT_STYLES : GRADIENT_STYLES
-  const warpLabel = isUiGlow ? 'Flow' : 'Warp'
-  const spreadLabel = isUiGlow ? 'Bloom' : 'Spread'
-  const noiseLabel = isUiGlow ? 'Grain' : 'Noise'
+  const styleLabels = isUiGlow ? KO_GRADIENT_STYLE_LABELS : GRADIENT_STYLE_LABELS
+  const motionLabels = isUiGlow ? KO_WARP_SHAPE_LABELS : WARP_SHAPE_LABELS
+  const warpLabel = isUiGlow ? '흐름' : '왜곡'
+  const spreadLabel = isUiGlow ? '광량' : '확산'
+  const noiseLabel = isUiGlow ? '입자' : '노이즈'
 
   return (
     <div className="pointer-events-none absolute inset-0 z-40 overflow-visible text-[var(--pg-text)]">
       <div className="pointer-events-auto absolute" style={perimeterControlStyle('style', previewWidth)}>
         <Select value={style} onValueChange={(value) => setStyle(value as GradientStyle)}>
-          <SelectTrigger aria-label={isUiGlow ? 'Reference style' : 'Gradient style'} className={`${CONTROL_SURFACE_CLASS} w-full px-3 text-xs`}>
+          <SelectTrigger aria-label={isUiGlow ? '레퍼런스 스타일' : '그라디언트 스타일'} className={`${CONTROL_SURFACE_CLASS} w-full px-3 text-xs`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="max-h-36">
             {styleOptions.map((option) => (
               <SelectItem key={option} value={option}>
-                {GRADIENT_STYLE_LABELS[option]}
+                {styleLabels[option]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -67,13 +70,13 @@ export function PerimeterControls({
 
       <div className="pointer-events-auto absolute" style={perimeterControlStyle('warpShape', previewWidth)}>
         <Select value={warpShape} onValueChange={(value) => setWarpShape(value as WarpShape)}>
-          <SelectTrigger aria-label={isUiGlow ? 'Reference motion' : 'Warp shape'} className={`${CONTROL_SURFACE_CLASS} w-full px-3 text-xs`}>
+          <SelectTrigger aria-label={isUiGlow ? '레퍼런스 모션' : '왜곡 형태'} className={`${CONTROL_SURFACE_CLASS} w-full px-3 text-xs`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="max-h-36">
             {WARP_SHAPES.map((option) => (
               <SelectItem key={option} value={option}>
-                {WARP_SHAPE_LABELS[option]}
+                {motionLabels[option]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -110,7 +113,7 @@ export function PerimeterControls({
         <>
           <CornerSlider
             controlId="vignette"
-            label="Vignette"
+            label="외곽 음영"
             previewWidth={previewWidth}
             value={vignette}
             max={VIGNETTE_MAX}

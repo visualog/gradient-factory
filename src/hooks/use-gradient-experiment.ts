@@ -14,9 +14,11 @@ import {
   type PointPosition,
 } from '@/lib/gradient-model'
 import { UI_GRADIENT_PRESETS } from '@/lib/ui-gradient-presets'
+import { K_CULTURE_GRADIENT_PRESETS } from '@/lib/k-culture-gradient-presets'
 
 export type ExperimentLock = 'points' | 'style' | 'warp' | 'noise'
 export type ExperimentProfile = 'standard' | 'ui-glow'
+export type CultureMode = 'general' | 'k-culture'
 export type CanvasSizePreset = {
   platform: 'Web' | 'Mobile' | 'Social'
   label: string
@@ -33,15 +35,15 @@ const LAB_PALETTES = [
 ]
 
 export const CANVAS_SIZE_PRESETS: CanvasSizePreset[] = [
-  { platform: 'Web', label: 'Hero 16:9', width: 1920, height: 1080 },
-  { platform: 'Web', label: 'Web Card 4:3', width: 1200, height: 900 },
-  { platform: 'Web', label: 'Banner 2:1', width: 1600, height: 800 },
-  { platform: 'Mobile', label: 'Phone 9:16', width: 1080, height: 1920 },
-  { platform: 'Mobile', label: 'Wallpaper 9:19.5', width: 946, height: 2048 },
-  { platform: 'Mobile', label: 'Tablet 4:3', width: 1536, height: 2048 },
-  { platform: 'Social', label: 'Square 1:1', width: 1080, height: 1080 },
-  { platform: 'Social', label: 'Portrait Post 4:5', width: 1080, height: 1350 },
-  { platform: 'Social', label: 'Story/Reel 9:16', width: 1080, height: 1920 },
+  { platform: 'Web', label: '히어로 16:9', width: 1920, height: 1080 },
+  { platform: 'Web', label: '웹 카드 4:3', width: 1200, height: 900 },
+  { platform: 'Web', label: '배너 2:1', width: 1600, height: 800 },
+  { platform: 'Mobile', label: '폰 9:16', width: 1080, height: 1920 },
+  { platform: 'Mobile', label: '배경화면 9:19.5', width: 946, height: 2048 },
+  { platform: 'Mobile', label: '태블릿 4:3', width: 1536, height: 2048 },
+  { platform: 'Social', label: '정사각 1:1', width: 1080, height: 1080 },
+  { platform: 'Social', label: '세로 포스트 4:5', width: 1080, height: 1350 },
+  { platform: 'Social', label: '스토리/릴스 9:16', width: 1080, height: 1920 },
 ]
 
 function randomItem<T>(items: readonly T[]) {
@@ -92,10 +94,12 @@ export function useGradientExperiment({
   profile?: ExperimentProfile
 }) {
   const [experimentLocks, setExperimentLocks] = useState<ExperimentLock[]>([])
+  const [cultureMode, setCultureMode] = useState<CultureMode>('general')
 
   const generateVariation = () => {
     const isUiGlow = profile === 'ui-glow'
-    const uiPreset = isUiGlow ? randomItem(UI_GRADIENT_PRESETS) : null
+    const presetPool = cultureMode === 'k-culture' ? K_CULTURE_GRADIENT_PRESETS : UI_GRADIENT_PRESETS
+    const uiPreset = isUiGlow ? randomItem(presetPool) : null
     const palette = uiPreset?.colors ?? randomItem(LAB_PALETTES)
     const nextColors = colors.map((color, index) =>
       lockedColorIndexes.includes(index) ? color : palette[index % palette.length]
@@ -150,6 +154,8 @@ export function useGradientExperiment({
     applyCanvasPreset,
     experimentLocks,
     toggleExperimentLock,
+    cultureMode,
+    setCultureMode,
     sizePresets: CANVAS_SIZE_PRESETS,
   }
 }

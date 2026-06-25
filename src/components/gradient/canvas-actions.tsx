@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Code2, Copy, Download, FileImage, Link2, Save } from 'lucide-react'
 import { CONTROL_SURFACE_CLASS } from '@/lib/perimeter-controls'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ export function CanvasActions({
   experiment?: ExportActions
 }) {
   const [isExportOpen, setIsExportOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement | null>(null)
   const actionButtonClass = 'h-8 w-8 rounded-[12px] bg-transparent text-[var(--pg-text)] outline-none hover:bg-black/[0.16] focus-visible:bg-black/[0.16] focus-visible:ring-1 focus-visible:ring-white/15 active:bg-black/[0.22]'
   const menuItemClass = 'flex h-8 w-full items-center gap-2 rounded-[9px] px-2 text-left text-xs text-[var(--pg-text)] outline-none hover:bg-black/[0.16] focus-visible:bg-black/[0.16]'
   const exportActions = experiment?.enabled ? experiment : null
@@ -33,12 +34,37 @@ export function CanvasActions({
     setIsExportOpen(false)
   }
 
+  useEffect(() => {
+    if (!isExportOpen) return
+
+    const closeIfOutside = (event: Event) => {
+      const target = event.target instanceof Node ? event.target : null
+      if (target && rootRef.current?.contains(target)) return
+      setIsExportOpen(false)
+    }
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsExportOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeIfOutside, true)
+    document.addEventListener('click', closeIfOutside, true)
+    document.addEventListener('keydown', closeOnEscape, true)
+
+    return () => {
+      document.removeEventListener('pointerdown', closeIfOutside, true)
+      document.removeEventListener('click', closeIfOutside, true)
+      document.removeEventListener('keydown', closeOnEscape, true)
+    }
+  }, [isExportOpen])
+
   return (
     <div
+      ref={rootRef}
       data-testid="canvas-actions"
       className={`pointer-events-auto relative flex items-center gap-1 px-1.5 text-[var(--pg-text)] ${CONTROL_SURFACE_CLASS}`}
     >
-      <Button type="button" onClick={saveToLibrary} variant="ghost" size="icon" className={actionButtonClass} title="Save to library" aria-label="Save to library">
+      <Button type="button" onClick={saveToLibrary} variant="ghost" size="icon" className={actionButtonClass} title="라이브러리에 저장" aria-label="라이브러리에 저장">
         <Save size={16} strokeWidth={1.8} />
       </Button>
       <Button
@@ -47,8 +73,8 @@ export function CanvasActions({
         variant="ghost"
         size="icon"
         className={actionButtonClass}
-        title={useExportMenu ? 'Export' : 'Download'}
-        aria-label={useExportMenu ? 'Export' : 'Download'}
+        title={useExportMenu ? '내보내기' : '다운로드'}
+        aria-label={useExportMenu ? '내보내기' : '다운로드'}
         aria-expanded={useExportMenu ? isExportOpen : undefined}
       >
         <Download size={16} strokeWidth={1.8} />
@@ -70,15 +96,15 @@ export function CanvasActions({
           <div className="my-1 h-px bg-white/10" />
           <button type="button" className={menuItemClass} onClick={() => runExportAction(exportActions.copyCss)}>
             <Code2 size={14} strokeWidth={1.9} />
-            <span>Copy CSS</span>
+            <span>CSS 복사</span>
           </button>
           <button type="button" className={menuItemClass} onClick={() => runExportAction(exportActions.copyTailwind)}>
             <Copy size={14} strokeWidth={1.9} />
-            <span>Copy Tailwind</span>
+            <span>Tailwind 복사</span>
           </button>
           <button type="button" className={menuItemClass} onClick={() => runExportAction(exportActions.shareGradient)}>
             <Link2 size={14} strokeWidth={1.9} />
-            <span>Copy share URL</span>
+            <span>공유 URL 복사</span>
           </button>
         </div>
       ) : null}

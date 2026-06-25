@@ -2,8 +2,9 @@
 
 import type { Dispatch, PointerEvent, SetStateAction } from 'react'
 import { Lock, Shuffle, Sparkles, Unlock } from 'lucide-react'
-import type { ExperimentLock } from '@/hooks/use-gradient-experiment'
-import { GRADIENT_MASK_EFFECTS, GRADIENT_MASK_LABELS, type GradientMaskEffect } from '@/lib/gradient-mask-effects'
+import type { CultureMode, ExperimentLock } from '@/hooks/use-gradient-experiment'
+import { GRADIENT_MASK_EFFECTS, type GradientMaskEffect } from '@/lib/gradient-mask-effects'
+import { KO_CULTURE_MODE_LABELS, KO_LOCK_LABELS, KO_LOCK_TITLES, KO_MASK_LABELS } from '@/lib/control-labels'
 import { GRADIENT_STEPS_MAX, stepAmountFromSliderValue, stepSliderValueFromAmount } from '@/lib/gradient-step-blend'
 import { CONTROL_SURFACE_CLASS } from '@/lib/perimeter-controls'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -17,14 +18,17 @@ type ExperimentToolbarProps = {
   setMask: Dispatch<SetStateAction<GradientMaskEffect>>
   steps: number
   setSteps: Dispatch<SetStateAction<number>>
+  cultureMode: CultureMode
+  setCultureMode: Dispatch<SetStateAction<CultureMode>>
+  cultureOptionsEnabled?: boolean
 }
 
 const EXPERIMENT_LOCKS: ExperimentLock[] = ['points', 'style', 'warp', 'noise']
 const LOCK_LABELS: Record<ExperimentLock, string> = {
-  points: 'P',
-  style: 'S',
-  warp: 'W',
-  noise: 'N',
+  points: KO_LOCK_LABELS.points,
+  style: KO_LOCK_LABELS.style,
+  warp: KO_LOCK_LABELS.warp,
+  noise: KO_LOCK_LABELS.noise,
 }
 const STEP_TRACK_START = { x: 70, y: 18 }
 const STEP_TRACK_CURVE_START = { x: 154, y: 18 }
@@ -49,6 +53,9 @@ export function ExperimentToolbar({
   setMask,
   steps,
   setSteps,
+  cultureMode,
+  setCultureMode,
+  cultureOptionsEnabled = false,
 }: ExperimentToolbarProps) {
   const buttonClass = 'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[12px] bg-transparent px-2.5 text-xs font-medium text-[var(--pg-text)] outline-none transition-colors hover:bg-black/[0.16] focus-visible:bg-black/[0.16] focus-visible:ring-1 focus-visible:ring-white/15 active:bg-black/[0.22]'
   const compactButtonClass = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-transparent text-xs font-semibold text-[var(--pg-text)] outline-none transition-colors hover:bg-black/[0.16] focus-visible:bg-black/[0.16] focus-visible:ring-1 focus-visible:ring-white/15 active:bg-black/[0.22]'
@@ -58,13 +65,13 @@ export function ExperimentToolbar({
   return (
     <div className="pointer-events-auto absolute bottom-full left-0 z-[80] mb-14 flex max-w-full flex-nowrap items-center gap-1.5 text-[var(--pg-text)]">
       <div className={`flex flex-nowrap items-center gap-1 px-1.5 ${CONTROL_SURFACE_CLASS}`}>
-        <button type="button" onClick={generateVariation} className={buttonClass} title="Generate a new variation">
+        <button type="button" onClick={generateVariation} className={buttonClass} title="새 그라디언트 생성">
           <Sparkles size={14} strokeWidth={1.9} />
-          <span>Generate</span>
+          <span>생성</span>
         </button>
-        <button type="button" onClick={shufflePalette} className={buttonClass} title="Shuffle unlocked colors">
+        <button type="button" onClick={shufflePalette} className={buttonClass} title="잠금 해제 색상 섞기">
           <Shuffle size={14} strokeWidth={1.9} />
-          <span>Shuffle</span>
+          <span>섞기</span>
         </button>
         <div className="mx-1 h-5 w-px bg-white/15" />
         {EXPERIMENT_LOCKS.map((lock) => (
@@ -73,7 +80,7 @@ export function ExperimentToolbar({
             type="button"
             onClick={() => toggleExperimentLock(lock)}
             className={lockButtonClass(lock)}
-            title={experimentLocks.includes(lock) ? `Unlock ${lock}` : `Lock ${lock}`}
+            title={`${KO_LOCK_TITLES[lock]} ${experimentLocks.includes(lock) ? '잠금 해제' : '잠금'}`}
             aria-pressed={experimentLocks.includes(lock)}
           >
             {experimentLocks.includes(lock) ? <Lock size={12} strokeWidth={2} /> : <Unlock size={12} strokeWidth={2} />}
@@ -83,18 +90,31 @@ export function ExperimentToolbar({
       </div>
       <div className={`flex w-[124px] items-center px-1.5 ${CONTROL_SURFACE_CLASS}`}>
         <Select value={mask} onValueChange={(value) => setMask(value as GradientMaskEffect)}>
-          <SelectTrigger aria-label="Mask effect" className="h-8 w-full rounded-[10px] bg-transparent px-2 text-xs hover:bg-transparent focus:bg-transparent focus:ring-0 data-[state=open]:bg-transparent data-[state=open]:ring-0">
+          <SelectTrigger aria-label="마스크 효과" className="h-8 w-full rounded-[10px] bg-transparent px-2 text-xs hover:bg-transparent focus:bg-transparent focus:ring-0 data-[state=open]:bg-transparent data-[state=open]:ring-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="max-h-36">
             {GRADIENT_MASK_EFFECTS.map((option) => (
               <SelectItem key={option} value={option}>
-                {GRADIENT_MASK_LABELS[option]}
+                {KO_MASK_LABELS[option]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
+      {cultureOptionsEnabled ? (
+        <div className={`flex w-[112px] items-center px-1.5 ${CONTROL_SURFACE_CLASS}`}>
+          <Select value={cultureMode} onValueChange={(value) => setCultureMode(value as CultureMode)}>
+            <SelectTrigger aria-label="문화 모드" className="h-8 w-full rounded-[10px] bg-transparent px-2 text-xs hover:bg-transparent focus:bg-transparent focus:ring-0 data-[state=open]:bg-transparent data-[state=open]:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">{KO_CULTURE_MODE_LABELS.general}</SelectItem>
+              <SelectItem value="k-culture">{KO_CULTURE_MODE_LABELS['k-culture']}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
       <StepsCornerSlider steps={steps} setSteps={setSteps} />
     </div>
   )
@@ -171,7 +191,7 @@ function StepsCornerSlider({
     <svg
       className="group/steps-slider h-[48px] w-[236px] shrink-0 self-start touch-none overflow-visible text-[var(--pg-text)] drop-shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
       viewBox="0 0 236 48"
-      aria-label="Steps"
+      aria-label="단계"
       role="slider"
       aria-valuemin={0}
       aria-valuemax={GRADIENT_STEPS_MAX}
@@ -190,7 +210,7 @@ function StepsCornerSlider({
         d={STEP_SURFACE_PATH}
         className="cursor-pointer fill-white/[0.10] transition-colors group-hover/steps-slider:fill-white/[0.06] group-active/steps-slider:fill-white/[0.08]"
       />
-      <text x="12" y="22" className="pointer-events-none fill-current text-[11px] font-medium opacity-80">Steps</text>
+      <text x="12" y="22" className="pointer-events-none fill-current text-[11px] font-medium opacity-80">단계</text>
       <path d={trackPath} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="6" strokeLinecap="round" pathLength={100} />
       {progressPath ? <path d={progressPath} fill="none" stroke="var(--pg-accent)" strokeWidth="6" strokeLinecap="round" /> : null}
       <circle cx={thumb.x} cy={thumb.y} r="7" className="cursor-grab active:cursor-grabbing" fill="var(--pg-text)" stroke="var(--pg-bg)" strokeWidth="1.5" />

@@ -6,7 +6,7 @@ import type { GradientStyle, WarpShape } from '@/lib/style-presets'
 import type { GradientMaskEffect } from '@/lib/gradient-mask-effects'
 import type { GradientSnapshot, PointPosition } from '@/lib/gradient-model'
 import type { ResizeHandle } from '@/lib/resize-handles'
-import type { CanvasSizePreset, ExperimentLock } from '@/hooks/use-gradient-experiment'
+import type { CanvasSizePreset, CultureMode, ExperimentLock } from '@/hooks/use-gradient-experiment'
 import { CanvasActions } from '@/components/gradient/canvas-actions'
 import { CanvasColorChips } from '@/components/gradient/canvas-color-chips'
 import { CanvasSizeControls } from '@/components/gradient/canvas-size-controls'
@@ -84,6 +84,8 @@ type CanvasStageProps = {
     applyCanvasPreset: (presetIndex: number) => void
     experimentLocks: ExperimentLock[]
     toggleExperimentLock: (lock: ExperimentLock) => void
+    cultureMode: CultureMode
+    setCultureMode: Dispatch<SetStateAction<CultureMode>>
     shareGradient: () => void
     copyCss: () => void
     copyTailwind: () => void
@@ -164,6 +166,9 @@ export function CanvasStage({
               setMask={controls.setMask}
               steps={controls.steps}
               setSteps={controls.setSteps}
+              cultureMode={experiment.cultureMode}
+              setCultureMode={experiment.setCultureMode}
+              cultureOptionsEnabled={controlVariant === 'ui-glow'}
             />
           ) : null}
           <PerimeterControls previewWidth={previewWidth} variant={controlVariant} {...controls} />
@@ -250,7 +255,7 @@ function PointHandles({
           type="button"
           className="absolute h-6 w-6 touch-none -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.45)] outline-none ring-1 ring-black/30 transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-white active:cursor-grabbing"
           style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%`, backgroundColor: colors[index] }}
-          title={`Color point ${index + 1}`}
+          title={`${index + 1}번 컬러 포인트`}
           onPointerDown={(event) => beginPointDrag(index, event)}
           onPointerMove={(event) => movePointDrag(index, event)}
           onPointerUp={endPointDrag}

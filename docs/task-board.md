@@ -112,3 +112,9 @@
 | T108 | 완료 | C Lab Steps cubic 원인 보정 | 수동 cubic curve가 `Bloom` perimeter arc와 다른 곡률을 만들던 원인을 확인하고 `Steps` track/surface를 `A` arc 기반으로 교체함 |
 | T109 | 완료 | C Lab Steps SVG bounds 보정 | `Steps` viewBox/height를 48px로 키워 surface와 thumb가 자체 SVG bounds 안에 들어오도록 함 |
 | T110 | 완료 | C Lab Steps 우측 bounds 보정 | `Steps` viewBox/width를 236px로 키워 오른쪽 surface와 thumb에 잘림 방지 여백을 확보함 |
+| T111 | 완료 | K 문화 그라디언트 리서치 정리 | `docs/k-culture-gradient-research.md`에 Gradient 종류/생성 방식과 오방색, 태극, 단청, 한복, K-pop 기반 C Lab 개선 방향을 정리함 |
+| T112 | 완료 | C Lab K Culture 생성 모드 추가 | `K_CULTURE_GRADIENT_PRESETS`와 `Culture mode` 선택을 추가해 C Lab Generate가 K 문화형 seed pool을 사용할 수 있음 |
+| T113 | 완료 | C Lab 컨트롤 한글화 | C Lab 컨트롤러의 라벨, 드롭다운 표시값, 버튼 tooltip/aria 문구를 한글로 전환함 |
+| T114 | 완료 | C Lab 드롭다운 외부 클릭 닫힘 보정 | 공통 `Select` wrapper에서 열린 메뉴 바깥 pointer/click/Escape 입력을 감지해 남아 있는 드롭다운을 닫도록 보정함 |
+| T115 | 완료 | C Lab 내보내기 메뉴 외부 클릭 닫힘 보정 | `CanvasActions` 내보내기 메뉴가 바깥 pointer/click/Escape 입력으로 닫히도록 보정함 |
+| T116 | 완료 | C Lab 드롭다운 스크롤바 시인성 보정 | 긴 Select 메뉴에 은은한 기본 스크롤바와 hover 시 명확한 스크롤바 스타일이 적용됨 |

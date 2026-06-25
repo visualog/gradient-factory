@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 const source = readFileSync(new URL('./perimeter-controls.ts', import.meta.url), 'utf8')
+const selectSource = readFileSync(new URL('../components/ui/select.tsx', import.meta.url), 'utf8')
+const globalsSource = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8')
 const colorChipsSource = readFileSync(new URL('../components/gradient/canvas-color-chips.tsx', import.meta.url), 'utf8')
 const sizeControlsSource = readFileSync(new URL('../components/gradient/canvas-size-controls.tsx', import.meta.url), 'utf8')
 const actionsSource = readFileSync(new URL('../components/gradient/canvas-actions.tsx', import.meta.url), 'utf8')
@@ -22,8 +24,8 @@ test('canvas perimeter bars share a fixed 36px height', () => {
 })
 
 test('mask and steps share the generate toolbar row with the standard gap', () => {
-  assert.match(experimentToolbarSource, /aria-label="Mask effect"/)
-  assert.match(experimentToolbarSource, /aria-label="Steps"/)
+  assert.match(experimentToolbarSource, /aria-label="마스크 효과"/)
+  assert.match(experimentToolbarSource, /aria-label="단계"/)
   assert.match(experimentToolbarSource, /w-\[236px\]/)
   assert.match(experimentToolbarSource, /h-\[48px\]/)
   assert.match(experimentToolbarSource, /viewBox="0 0 236 48"/)
@@ -42,8 +44,8 @@ test('mask and steps share the generate toolbar row with the standard gap', () =
   assert.doesNotMatch(experimentToolbarSource, /222 40/)
   assert.doesNotMatch(experimentToolbarSource, /<Slider/)
   assert.doesNotMatch(experimentToolbarSource, /style=\{\{ width: 168 \}\}/)
-  assert.doesNotMatch(perimeterControlsSource, /label="Steps"/)
-  assert.doesNotMatch(perimeterControlsSource, /aria-label="Mask effect"/)
+  assert.doesNotMatch(perimeterControlsSource, /label="단계"/)
+  assert.doesNotMatch(perimeterControlsSource, /aria-label="마스크 효과"/)
 })
 
 test('color panel swatches update before the outside pointerdown closer can unmount them', () => {
@@ -64,4 +66,25 @@ test('floating color and export panels render above canvas point handles', () =>
   assert.match(canvasStageSource, /absolute inset-0 z-\[30\]/)
   assert.match(colorChipsSource, /z-\[90\]/)
   assert.match(actionsSource, /z-\[90\]/)
+  assert.match(actionsSource, /rootRef\.current\?\.contains\(target\)/)
+  assert.match(actionsSource, /document\.addEventListener\('pointerdown', closeIfOutside, true\)/)
+  assert.match(actionsSource, /document\.addEventListener\('keydown', closeOnEscape, true\)/)
+})
+
+test('select popovers close from document-level outside interactions', () => {
+  assert.match(selectSource, /document\.addEventListener\('pointerdown', closeIfOutside, true\)/)
+  assert.match(selectSource, /document\.addEventListener\('click', closeIfOutside, true\)/)
+  assert.match(selectSource, /document\.addEventListener\('keydown', closeOnEscape, true\)/)
+  assert.match(selectSource, /triggerRef\.current\?\.contains\(target\)/)
+  assert.match(selectSource, /contentRef\.current\?\.contains\(target\)/)
+})
+
+test('select popovers reveal subtle scrollbars for overflowing menus', () => {
+  assert.match(selectSource, /pg-select-content/)
+  assert.match(selectSource, /pg-select-viewport max-h-\[inherit\] overflow-y-auto/)
+  assert.match(globalsSource, /\.pg-select-viewport/)
+  assert.match(globalsSource, /scrollbar-color: rgba\(255,255,255,0\.24\) transparent/)
+  assert.match(globalsSource, /\.pg-select-content:hover \.pg-select-viewport/)
+  assert.match(globalsSource, /scrollbar-color: rgba\(255,255,255,0\.54\) transparent/)
+  assert.match(globalsSource, /\.pg-select-viewport::-webkit-scrollbar-thumb:hover/)
 })

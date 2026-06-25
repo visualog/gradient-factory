@@ -17,6 +17,11 @@ type CanvasSizeControlsProps = {
 }
 
 const SIZE_PLATFORMS: CanvasSizePreset['platform'][] = ['Web', 'Mobile', 'Social']
+const SIZE_PLATFORM_LABELS: Record<CanvasSizePreset['platform'], string> = {
+  Web: '웹',
+  Mobile: '모바일',
+  Social: '소셜',
+}
 
 export function CanvasSizeControls({
   width,
@@ -29,7 +34,7 @@ export function CanvasSizeControls({
   const showPresets = presets.length > 0 && Boolean(onPresetSelect)
   const [selectedPresetIndex, setSelectedPresetIndex] = useState<number | null>(null)
   const presetValue = selectedPresetIndex === null ? 'custom' : String(selectedPresetIndex)
-  const presetLabel = selectedPresetIndex === null ? 'Custom' : presets[selectedPresetIndex]?.label ?? 'Custom'
+  const presetLabel = selectedPresetIndex === null ? '사용자' : presets[selectedPresetIndex]?.label ?? '사용자'
   const setCustomWidth: Dispatch<SetStateAction<number>> = (next) => {
     setSelectedPresetIndex(null)
     setWidth(next)
@@ -59,8 +64,8 @@ export function CanvasSizeControls({
           }}
         />
       ) : null}
-      <SizeInput label="W" min={CANVAS_MIN_WIDTH} value={width} onChange={setCustomWidth} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-width-input" showStepper />
-      <SizeInput label="H" min={CANVAS_MIN_HEIGHT} value={height} onChange={setCustomHeight} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-height-input" showStepper />
+      <SizeInput label="폭" min={CANVAS_MIN_WIDTH} value={width} onChange={setCustomWidth} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-width-input" showStepper />
+      <SizeInput label="높" min={CANVAS_MIN_HEIGHT} value={height} onChange={setCustomHeight} className="gap-2" inputClassName="pg-number-input w-16 pl-1 pr-5 text-right tabular-nums" inputTestId="canvas-height-input" showStepper />
     </div>
   )
 }
@@ -90,18 +95,18 @@ function SizePresetSelect({
         }}
       >
       <SelectTrigger
-        aria-label={`Canvas size preset: ${label}`}
+        aria-label={`캔버스 크기 프리셋: ${label}`}
         className="-ml-1 h-8 w-[108px] rounded-[10px] px-2 text-xs font-semibold hover:bg-transparent focus:bg-transparent focus:ring-0 data-[state=open]:bg-transparent data-[state=open]:ring-0"
-        title="Choose canvas size"
+        title="캔버스 크기 선택"
       >
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="max-h-64 w-[220px]">
-        <SelectItem value="custom">Custom</SelectItem>
+        <SelectItem value="custom">사용자</SelectItem>
         {SIZE_PLATFORMS.map((platform) => (
           <SelectGroup key={platform}>
             <SelectLabel className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/45">
-              {platform}
+              {SIZE_PLATFORM_LABELS[platform]}
             </SelectLabel>
             {presets.map((preset, index) =>
               preset.platform === platform ? (

@@ -58,8 +58,8 @@ export function CanvasColorChips({
               type="button"
               onClick={() => toggleColorLock(index)}
               className={`absolute -left-1.5 -top-1.5 z-10 grid h-3.5 w-3.5 place-items-center rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover/palette-chip:opacity-100 ${lockedColorIndexes.includes(index) ? 'bg-[var(--pg-text)] text-[var(--pg-bg)] opacity-100' : 'bg-black/65 text-white opacity-0'}`}
-              title={lockedColorIndexes.includes(index) ? `Unlock color ${index + 1}` : `Lock color ${index + 1}`}
-              aria-label={lockedColorIndexes.includes(index) ? `Unlock color ${index + 1}` : `Lock color ${index + 1}`}
+              title={`${index + 1}번 색상 ${lockedColorIndexes.includes(index) ? '잠금 해제' : '잠금'}`}
+              aria-label={`${index + 1}번 색상 ${lockedColorIndexes.includes(index) ? '잠금 해제' : '잠금'}`}
             >
               {lockedColorIndexes.includes(index) ? <Lock size={8} strokeWidth={2.2} /> : <Unlock size={8} strokeWidth={2.2} />}
             </button>
@@ -68,8 +68,8 @@ export function CanvasColorChips({
             type="button"
             className={`block h-5 w-5 cursor-pointer rounded-full border border-white/45 shadow-[0_4px_14px_rgba(0,0,0,0.35)] ring-1 ring-black/25 transition-transform hover:scale-110 focus-within:scale-110 focus-within:ring-2 focus-within:ring-white ${lockedColorIndexes.includes(index) ? 'outline outline-1 outline-offset-2 outline-white/70' : ''}`}
             style={{ backgroundColor: color }}
-            title={`Choose color ${index + 1}`}
-            aria-label={`Choose color ${index + 1}`}
+            title={`${index + 1}번 색상 선택`}
+            aria-label={`${index + 1}번 색상 선택`}
             onClick={() => setActiveColorIndex(activeColorIndex === index ? null : index)}
           >
           </button>
@@ -81,8 +81,8 @@ export function CanvasColorChips({
               type="button"
               onClick={() => removeColor(index)}
               className="absolute -right-1.5 -top-1.5 z-10 grid h-3.5 w-3.5 place-items-center rounded-full bg-[var(--pg-text)] text-[var(--pg-bg)] opacity-0 shadow-[0_3px_8px_rgba(0,0,0,0.35)] transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover/palette-chip:opacity-100"
-              title={`Remove color ${index + 1}`}
-              aria-label={`Remove color ${index + 1}`}
+              title={`${index + 1}번 색상 제거`}
+              aria-label={`${index + 1}번 색상 제거`}
             >
               <X size={9} strokeWidth={2.2} />
             </button>
@@ -95,8 +95,8 @@ export function CanvasColorChips({
           type="button"
           onClick={addColor}
           className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-dashed border-white/35 text-[var(--pg-text)] opacity-70 transition-[background-color,border-color,opacity,transform] hover:scale-110 hover:border-white/70 hover:bg-black/[0.16] hover:opacity-100 focus-visible:scale-110 focus-visible:border-white/70 focus-visible:bg-black/[0.16] focus-visible:opacity-100 focus-visible:outline-none"
-          title="Add color"
-          aria-label="Add color"
+          title="색상 추가"
+          aria-label="색상 추가"
         >
           <Plus size={12} strokeWidth={2} />
         </button>
@@ -160,7 +160,7 @@ function ColorChipPanel({
             if (event.key === 'Escape') close()
           }}
           className="h-8 min-w-0 flex-1 rounded-[8px] bg-white/[0.07] px-2 text-xs font-semibold uppercase tabular-nums outline-none transition-colors focus:bg-white/[0.10] focus:ring-1 focus:ring-white/15"
-          aria-label={`Hex color ${index + 1}`}
+          aria-label={`${index + 1}번 Hex 색상`}
         />
       </div>
       <div
@@ -178,7 +178,7 @@ function ColorChipPanel({
             }}
             className="h-5 w-5 rounded-full border border-white/25 shadow-[0_4px_10px_rgba(0,0,0,0.28)] outline-none transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-white"
             style={{ backgroundColor: swatch }}
-            aria-label={`Set color ${swatch}`}
+            aria-label={`${swatch} 색상 적용`}
           />
         ))}
       </div>
